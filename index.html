@@ -2,26 +2,26 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Colibri Business</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
 <header>
-  <h1>Colibri Business</h1>
+  <h1>Clients</h1>
 </header>
 
-<main>
-  <h2>Bienvenue</h2>
-  <p>Gérez vos clients, commandes et paiements facilement.</p>
-</main>
+<main id="clientList"></main>
 
-<!-- Bouton flottant -->
-<button class="fab" onclick="actionPrincipal()"><i class="fas fa-plus"></i></button>
+<button class="fab" onclick="goAddClient()">
+  <i class="fas fa-plus"></i>
+</button>
 
-<!-- Menu bas -->
 <nav class="menu-bas">
   <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
   <a href="commandes.html"><i class="fas fa-box"></i></a>
@@ -30,12 +30,94 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
+<!-- MODAL -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h2>Modifier client</h2>
+
+    <label>Nom</label>
+    <input id="editNom">
+
+    <label>Téléphone</label>
+    <input id="editTel">
+
+    <button class="btn-primary" onclick="saveEdit()">Sauvegarder</button>
+    <button class="btn-danger" onclick="deleteClient()">Supprimer</button>
+    <button class="btn-cancel" onclick="closeEdit()">Annuler</button>
+  </div>
+</div>
+
 <script>
-function actionPrincipal() {
+let currentId = null;
+
+function goAddClient() {
   window.location.href = "addclient.html";
 }
+
+function loadClients() {
+  const list = document.getElementById("clientList");
+  list.innerHTML = "";
+
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+
+  if (clients.length === 0) {
+    list.innerHTML = "<p>Aucun client</p>";
+    return;
+  }
+
+  clients.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "client-item";
+    div.onclick = () => openEdit(c.id);
+
+    div.innerHTML = `
+      <div>
+        <strong>${c.nom}</strong><br>
+        <small>${c.tel}</small>
+      </div>
+      <i class="fas fa-ellipsis-vertical"></i>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function openEdit(id) {
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  let c = clients.find(x => x.id === id);
+  if (!c) return;
+
+  currentId = id;
+  editNom.value = c.nom;
+  editTel.value = c.tel;
+  editModal.style.display = "flex";
+}
+
+function closeEdit() {
+  editModal.style.display = "none";
+}
+
+function saveEdit() {
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  let i = clients.findIndex(x => x.id === currentId);
+  if (i === -1) return;
+
+  clients[i].nom = editNom.value;
+  clients[i].tel = editTel.value;
+  localStorage.setItem("clients", JSON.stringify(clients));
+  closeEdit();
+  loadClients();
+}
+
+function deleteClient() {
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  clients = clients.filter(x => x.id !== currentId);
+  localStorage.setItem("clients", JSON.stringify(clients));
+  closeEdit();
+  loadClients();
+}
+
+document.addEventListener("DOMContentLoaded", loadClients);
 </script>
-  
 
 </body>
 </html>
