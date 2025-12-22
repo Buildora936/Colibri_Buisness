@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Achat - Colibri Business</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<header>
+  <h1>Achats</h1>
+</header>
+
+<main id="achatList"></main>
+
+<!-- Bouton flottant -->
+<button class="fab" onclick="openAddAchat()">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- MENU BAS -->
+<nav class="menu-bas">
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
+
+<!-- MODAL AJOUT / EDIT ACHAT -->
+<div id="achatModal" class="modal">
+  <div class="modal-content">
+
+    <h2>Achat</h2>
+
+    <label>Description</label>
+    <input id="achatDesc" placeholder="Ex : Achat marchandises">
+
+    <label>Montant</label>
+    <input id="achatMontant" type="number" placeholder="Ex : 1500">
+
+    <label>Date</label>
+    <input id="achatDate" type="date">
+
+    <button class="btn-primary" onclick="saveAchat()">Enregistrer</button>
+    <button class="btn-danger" onclick="deleteAchat()">Supprimer</button>
+    <button class="btn-cancel" onclick="closeAchat()">Annuler</button>
+
+  </div>
+</div>
+
+<script>
+let currentAchatId = null;
+
+function loadAchats() {
+  const list = document.getElementById("achatList");
+  list.innerHTML = "";
+
+  let achats = JSON.parse(localStorage.getItem("achats")) || [];
+
+  if (achats.length === 0) {
+    list.innerHTML = "<p>Aucun achat enregistré</p>";
+    return;
+  }
+
+  achats.forEach(a => {
+    const div = document.createElement("div");
+    div.className = "client-item";
+    div.onclick = () => openEditAchat(a.id);
+
+    div.innerHTML = `
+      <div>
+        <strong>${a.desc}</strong><br>
+        <small>${a.date} • ${a.montant} HTG</small>
+      </div>
+      <i class="fas fa-pen"></i>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+function openAddAchat() {
+  currentAchatId = null;
+  achatDesc.value = "";
+  achatMontant.value = "";
+  achatDate.valueAsDate = new Date();
+  achatModal.style.display = "flex";
+}
+
+function openEditAchat(id) {
+  let achats = JSON.parse(localStorage.getItem("achats")) || [];
+  let a = achats.find(x => x.id === id);
+  if (!a) return;
+
+  currentAchatId = id;
+  achatDesc.value = a.desc;
+  achatMontant.value = a.montant;
+  achatDate.value = a.date;
+  achatModal.style.display = "flex";
+}
+
+function closeAchat() {
+  achatModal.style.display = "none";
+}
+
+function saveAchat() {
+  const desc = achatDesc.value.trim();
+  const montant = achatMontant.value;
+  const date = achatDate.value;
+
+  if (!desc || !montant || !date) {
+    alert("Tous les champs sont requis");
+    return;
+  }
+
+  let achats = JSON.parse(localStorage.getItem("achats")) || [];
+
+  if (currentAchatId) {
+    let i = achats.findIndex(x => x.id === currentAchatId);
+    achats[i] = { id: currentAchatId, desc, montant, date };
+  } else {
+    achats.push({
+      id: Date.now(),
+      desc,
+      montant,
+      date
+    });
+  }
+
+  localStorage.setItem("achats", JSON.stringify(achats));
+  closeAchat();
+  loadAchats();
+}
+
+function deleteAchat() {
+  if (!currentAchatId) return;
+
+  let achats = JSON.parse(localStorage.getItem("achats")) || [];
+  achats = achats.filter(x => x.id !== currentAchatId);
+
+  localStorage.setItem("achats", JSON.stringify(achats));
+  closeAchat();
+  loadAchats();
+}
+
+document.addEventListener("DOMContentLoaded", loadAchats);
+</script>
+
+</body>
+</html>
