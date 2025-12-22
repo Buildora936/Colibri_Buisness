@@ -16,9 +16,11 @@
   <h1>Achats</h1>
 </header>
 
-<main id="achatList"></main>
+<main id="achatList">
+  <!-- Achats affichés ici -->
+</main>
 
-<!-- Bouton flottant -->
+<!-- Bouton + -->
 <button class="fab" onclick="openAddAchat()">
   <i class="fas fa-plus"></i>
 </button>
@@ -32,20 +34,23 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- MODAL AJOUT / EDIT ACHAT -->
+<!-- MODAL AJOUT / MODIFICATION -->
 <div id="achatModal" class="modal">
   <div class="modal-content">
 
     <h2>Achat</h2>
 
+    <label>Titre / Produit</label>
+    <input id="aTitre" placeholder="Ex : Achat stock">
+
     <label>Description</label>
-    <input id="achatDesc" placeholder="Ex : Achat marchandises">
+    <input id="aDesc" placeholder="Détails de l'achat">
 
     <label>Montant</label>
-    <input id="achatMontant" type="number" placeholder="Ex : 1500">
+    <input id="aMontant" type="number" placeholder="Ex : 3000">
 
     <label>Date</label>
-    <input id="achatDate" type="date">
+    <input id="aDate" type="date">
 
     <button class="btn-primary" onclick="saveAchat()">Enregistrer</button>
     <button class="btn-danger" onclick="deleteAchat()">Supprimer</button>
@@ -75,8 +80,8 @@ function loadAchats() {
 
     div.innerHTML = `
       <div>
-        <strong>${a.desc}</strong><br>
-        <small>${a.date} • ${a.montant} HTG</small>
+        <strong>${a.titre}</strong><br>
+        <small>${a.desc} • ${a.montant} HTG • ${a.date}</small>
       </div>
       <i class="fas fa-pen"></i>
     `;
@@ -87,9 +92,10 @@ function loadAchats() {
 
 function openAddAchat() {
   currentAchatId = null;
-  achatDesc.value = "";
-  achatMontant.value = "";
-  achatDate.valueAsDate = new Date();
+  aTitre.value = "";
+  aDesc.value = "";
+  aMontant.value = "";
+  aDate.valueAsDate = new Date();
   achatModal.style.display = "flex";
 }
 
@@ -99,9 +105,10 @@ function openEditAchat(id) {
   if (!a) return;
 
   currentAchatId = id;
-  achatDesc.value = a.desc;
-  achatMontant.value = a.montant;
-  achatDate.value = a.date;
+  aTitre.value = a.titre;
+  aDesc.value = a.desc;
+  aMontant.value = a.montant;
+  aDate.value = a.date;
   achatModal.style.display = "flex";
 }
 
@@ -110,12 +117,13 @@ function closeAchat() {
 }
 
 function saveAchat() {
-  const desc = achatDesc.value.trim();
-  const montant = achatMontant.value;
-  const date = achatDate.value;
+  const titre = aTitre.value.trim();
+  const desc = aDesc.value.trim();
+  const montant = aMontant.value;
+  const date = aDate.value;
 
-  if (!desc || !montant || !date) {
-    alert("Tous les champs sont requis");
+  if (!titre || !montant || !date) {
+    alert("Titre, montant et date sont obligatoires");
     return;
   }
 
@@ -123,10 +131,11 @@ function saveAchat() {
 
   if (currentAchatId) {
     let i = achats.findIndex(x => x.id === currentAchatId);
-    achats[i] = { id: currentAchatId, desc, montant, date };
+    achats[i] = { id: currentAchatId, titre, desc, montant, date };
   } else {
     achats.push({
       id: Date.now(),
+      titre,
       desc,
       montant,
       date
