@@ -2,36 +2,33 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ajouter client</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
 <header>
-  <h1>Ajouter un client</h1>
+  <h1>Ajouter client</h1>
 </header>
 
 <main>
-
   <div class="card">
     <label>Nom du client</label>
-    <input type="text" id="clientNom" placeholder="Nom complet">
+    <input id="nom" placeholder="Nom complet">
 
     <label>Téléphone</label>
-    <input type="tel" id="clientTel" placeholder="+509...">
+    <input id="tel" placeholder="+509...">
 
-    <button class="btn-primary" onclick="saveClient()">
-      Enregistrer
-    </button>
+    <button class="btn-primary" onclick="saveClient()">Enregistrer</button>
   </div>
-
 </main>
 
-<!-- Bouton retour -->
-<button class="fab back" onclick="history.back()">
+<button class="fab" onclick="goBack()">
   <i class="fas fa-arrow-left"></i>
 </button>
 
@@ -45,11 +42,11 @@
 
 <script>
 function saveClient() {
-  const nom = document.getElementById("clientNom").value.trim();
-  const tel = document.getElementById("clientTel").value.trim();
+  const nom = document.getElementById("nom").value.trim();
+  const tel = document.getElementById("tel").value.trim();
 
-  if (nom === "" || tel === "") {
-    alert("Veuillez remplir tous les champs");
+  if (!nom || !tel) {
+    alert("Champs requis");
     return;
   }
 
@@ -57,14 +54,16 @@ function saveClient() {
 
   clients.push({
     id: Date.now(),
-    nom: nom,
-    tel: tel
+    nom,
+    tel
   });
 
   localStorage.setItem("clients", JSON.stringify(clients));
+  window.location.href = "index.html";
+}
 
-  alert("Client ajouté avec succès");
-  window.location.href = "clients.html";
+function goBack() {
+  window.location.href = "index.html";
 }
 </script>
 
