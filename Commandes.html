@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Commandes - Colibri Business</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<header>
+  <h1>Commandes</h1>
+</header>
+
+<main id="commandeList"></main>
+
+<!-- Bouton + : ouvrir vente -->
+<button class="fab" onclick="goVente()">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- MENU BAS -->
+<nav class="menu-bas">
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
+
+<!-- MODAL COMMANDE -->
+<div id="commandeModal" class="modal">
+  <div class="modal-content">
+
+    <h2>Commande</h2>
+
+    <label>Client</label>
+    <select id="cClient"></select>
+
+    <label>Produit</label>
+    <input id="cProduit" placeholder="Nom du produit">
+
+    <label>Montant</label>
+    <input id="cMontant" type="number">
+
+    <label>Statut</label>
+    <select id="cStatut">
+      <option value="En attente">En attente</option>
+      <option value="Payée">Payée</option>
+    </select>
+
+    <button class="btn-primary" onclick="saveCommande()">Enregistrer</button>
+    <button class="btn-danger" onclick="deleteCommande()">Supprimer</button>
+    <button class="btn-cancel" onclick="closeCommande()">Annuler</button>
+
+  </div>
+</div>
+
+<script>
+let currentCommandeId = null;
+
+function goVente() {
+  window.location.href = "vente.html";
+}
+
+/* Charger clients dans select */
+function loadClientsSelect() {
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  cClient.innerHTML = "";
+
+  clients.forEach(c => {
+    let opt = document.createElement("option");
+    opt.value = c.nom;
+    opt.textContent = c.nom;
+    cClient.appendChild(opt);
+  });
+}
+
+function loadCommandes() {
+  const list = document.getElementById("commandeList");
+  list.innerHTML = "";
+
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+
+  if (commandes.length === 0) {
+    list.innerHTML = "<p>Aucune commande</p>";
+    return;
+  }
+
+  commandes.forEach(cmd => {
+    const div = document.createElement("div");
+    div.className = "client-item";
+    div.onclick = () => openEditCommande(cmd.id);
+
+    div.innerHTML = `
+      <div>
+        <strong>${cmd.client}</strong><br>
+        <small>${cmd.produit} • ${cmd.montant} HTG • ${cmd.statut}</small>
+      </div>
+      <i class="fas fa-pen"></i>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+function openAddCommande() {
+  currentCommandeId = null;
+  loadClientsSelect();
+  cProduit.value = "";
+  cMontant.value = "";
+  cStatut.value = "En attente";
+  commandeModal.style.display = "flex";
+}
+
+function openEditCommande(id) {
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+  let c = commandes.find(x => x.id === id);
+  if (!c) return;
+
+  currentCommandeId = id;
+  loadClientsSelect();
+  cClient.value = c.client;
+  cProduit.value = c.produit;
+  cMontant.value = c.montant;
+  cStatut.value = c.statut;
+  commandeModal.style.display = "flex";
+}
+
+function closeCommande() {
+  commandeModal.style.display = "none";
+}
+
+function saveCommande() {
+  const client = cClient.value;
+  const produit = cProduit.value.trim();
+  const montant = cMontant.value;
+  const statut = cStatut.value;
+
+  if (!client || !produit || !montant) {
+    alert("Champs obligatoires");
+    return;
+  }
+
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+
+  if (currentCommandeId) {
+    let i = commandes.findIndex(x => x.id === currentCommandeId);
+    commandes[i] = { id: currentCommandeId, client, produit, montant, statut };
+  } else {
+    commandes.push({
+      id: Date.now(),
+      client,
+      produit,
+      montant,
+      statut
+    });
+  }
+
+  localStorage.setItem("commandes", JSON.stringify(commandes));
+  closeCommande();
+  loadCommandes();
+}
+
+function deleteCommande() {
+  if (!currentCommandeId) return;
+
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+  commandes = commandes.filter(x => x.id !== currentCommandeId);
+
+  localStorage.setItem("commandes", JSON.stringify(commandes));
+  closeCommande();
+  loadCommandes();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadCommandes();
+});
+</script>
+
+</body>
+</html>
