@@ -98,3 +98,46 @@ main p {
   pointer-events: none;
 }
 
+/* CARD (FORMULAIRE) */
+.card {
+  background-color: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 16px;
+}
+
+/* INPUT */
+label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: var(--text-light);
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background-color: rgba(0,0,0,0.25);
+  color: var(--text-light);
+}
+
+/* BOUTON PRINCIPAL */
+.btn-primary {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--vert-title);
+  color: var(--bleu-bg);
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* FAB RETOUR */
+.fab.back {
+  background-color: rgba(255,255,255,0.15);
+  color: var(--text-light);
+}
