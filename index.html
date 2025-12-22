@@ -30,22 +30,6 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- MODAL -->
-<div id="editModal" class="modal">
-  <div class="modal-content">
-    <h2>Modifier client</h2>
-
-    <label>Nom</label>
-    <input id="editNom">
-
-    <label>Téléphone</label>
-    <input id="editTel">
-
-    <button class="btn-primary" onclick="saveEdit()">Sauvegarder</button>
-    <button class="btn-danger" onclick="deleteClient()">Supprimer</button>
-    <button class="btn-cancel" onclick="closeEdit()">Annuler</button>
-  </div>
-</div>
 
 <script>
 let currentId = null;
@@ -108,13 +92,6 @@ function saveEdit() {
   loadClients();
 }
 
-function deleteClient() {
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  clients = clients.filter(x => x.id !== currentId);
-  localStorage.setItem("clients", JSON.stringify(clients));
-  closeEdit();
-  loadClients();
-}
 
 document.addEventListener("DOMContentLoaded", loadClients);
 </script>
