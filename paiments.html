@@ -1,1 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Paiements - Colibri Business</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<header>
+  <h1>Paiements</h1>
+</header>
+
+<main id="paiementList"></main>
+
+<!-- Bouton + pour ajouter paiement -->
+<button class="fab" onclick="openAddPaiement()">
+  <i class="fas fa-plus"></i>
+</button>
+
+<!-- MENU BAS -->
+<nav class="menu-bas">
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
+
+<!-- MODAL AJOUT / MODIFICATION PAIEMENT -->
+<div id="paiementModal" class="modal">
+  <div class="modal-content">
+
+    <h2>Paiement</h2>
+
+    <label>Commande</label>
+    <select id="pCommande"></select>
+
+    <label>Montant payé</label>
+    <input id="pMontant" type="number" placeholder="Ex : 1500 HTG">
+
+    <label>Date</label>
+    <input id="pDate" type="date">
+
+    <button class="btn-primary" onclick="savePaiement()">Enregistrer</button>
+    <button class="btn-danger" onclick="deletePaiement()">Supprimer</button>
+    <button class="btn-cancel" onclick="closePaiement()">Annuler</button>
+
+  </div>
+</div>
+
+<script>
+let currentPaiementId = null;
+
+/* CHARGEMENT */
+function loadPaiements() {
+  const list = document.getElementById("paiementList");
+  list.innerHTML = "";
+
+  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
+  if (paiements.length === 0) {
+    list.innerHTML = "<p>Aucun paiement</p>";
+    return;
+  }
+
+  paiements.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "client-item";
+    div.onclick = () => openEditPaiement(p.id);
+
+    div.innerHTML = `
+      <div>
+        <strong>${p.commande}</strong><br>
+        <small>${p.montant} HTG • ${p.date}</small>
+      </div>
+      <i class="fas fa-pen"></i>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* MODAL */
+function openAddPaiement() {
+  currentPaiementId = null;
+  loadCommandesPaiement();
+  pMontant.value = "";
+  pDate.valueAsDate = new Date();
+  paiementModal.style.display = "flex";
+}
+
+function openEditPaiement(id) {
+  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
+  let p = paiements.find(x => x.id === id);
+  if (!p) return;
+
+  currentPaiementId = id;
+  loadCommandesPaiement();
+  pCommande.value = p.commande;
+  pMontant.value = p.montant;
+  pDate.value = p.date;
+  paiementModal.style.display = "flex";
+}
+
+/* CHARGER COMMANDES */
+function loadCommandesPaiement() {
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+  pCommande.innerHTML = commandes.map(c =>
+    `<option value="${c.id}">${c.client} • ${c.produit} • ${c.qte} × ${c.prix} HTG</option>`
+  ).join("");
+}
+
+/* SAUVEGARDER */
+function savePaiement() {
+  const commandeOption = pCommande.options[pCommande.selectedIndex];
+  const commandeText = commandeOption.text;
+  const montant = pMontant.value;
+  const date = pDate.value;
+
+  if (!montant || !commandeText || !date) {
+    alert("Tous les champs sont obligatoires");
+    return;
+  }
+
+  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
+
+  if (currentPaiementId) {
+    let i = paiements.findIndex(x => x.id === currentPaiementId);
+    paiements[i] = { id: currentPaiementId, commande: commandeText, montant, date };
+  } else {
+    paiements.push({
+      id: Date.now(),
+      commande: commandeText,
+      montant,
+      date
+    });
+  }
+
+  localStorage.setItem("paiements", JSON.stringify(paiements));
+  closePaiement();
+  loadPaiements();
+}
+
+/* SUPPRIMER */
+function deletePaiement() {
+  if (!currentPaiementId) return;
+
+  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
+  paiements = paiements.filter(x => x.id !== currentPaiementId);
+
+  localStorage.setItem("paiements", JSON.stringify(paiements));
+  closePaiement();
+  loadPaiements();
+}
+
+function closePaiement() {
+  paiementModal.style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", loadPaiements);
+</script>
+
+</body>
+</html>
