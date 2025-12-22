@@ -89,3 +89,16 @@ main p {
 .fab:active {
   transform: scale(0.95);
 }
+/* LISTE STYLE WHATSAPP */
+.list {
+  list-style: none;
+  margin-top: 15px;
+}
+
+.list li {
+  background-color: rgba(255,255,255,0.05);
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  color: #EAEAFF;
+}
