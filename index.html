@@ -3,40 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clients - Colibri Business</title>
+  <title>Colibri Business</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
 
 <header>
-  <h1>Clients</h1>
+  <h1>Colibri Business</h1>
 </header>
 
 <main>
-  <h2>Mes clients</h2>
-
-  <ul class="list" id="listClients">
-    <li>Jean Dupont - 509xxxx</li>
-    <li>Marie Louis - 509xxxx</li>
-  </ul>
+  <h2>Bienvenue</h2>
+  <p>Gérez vos clients, commandes et paiements facilement.</p>
 </main>
 
-<!-- Bouton flottant = Ajouter client -->
-<button class="fab" onclick="openAddClient()">+</button>
+<!-- Bouton flottant -->
+<button class="fab" onclick="actionPrincipal()"><i class="fas fa-plus"></i></button>
 
-<!-- Menu bas (NAVIGATION) -->
+<!-- Menu bas -->
 <nav class="menu-bas">
-  <a href="achat.html">Achat</a>
-  <a href="commandes.html">Commandes</a>
-  <a href="paiements.html">Paiements</a>
-  <a href="statistiques.html">Statistiques</a>
-  <a href="chaines.html">Mes chaînes</a>
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
 <script>
-function openAddClient(){
-  alert( "Ajouter un client" );
+function actionPrincipal() {
+  alert("Bouton + : ouvrir page Ajouter Client");
 }
 </script>
 
