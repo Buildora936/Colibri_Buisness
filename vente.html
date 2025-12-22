@@ -13,17 +13,27 @@
 <body>
 
 <header>
-  <h1>Ventes</h1>
+  <h1>Nouvelle Vente</h1>
 </header>
 
-<main id="venteList"></main>
+<main>
+  <div class="card">
+    <label>Titre du produit</label>
+    <input id="vTitre" placeholder="Ex : Produit A">
 
-<!-- Bouton + -->
-<button class="fab" onclick="openAddVente()">
-  <i class="fas fa-plus"></i>
-</button>
+    <label>Description</label>
+    <input id="vDesc" placeholder="Description du produit">
 
-<!-- MENU BAS -->
+    <label>Prix</label>
+    <input id="vPrix" type="number" placeholder="Ex : 1500 HTG">
+
+    <label>Média (image ou vidéo)</label>
+    <input id="vMedia" type="file" accept="image/*,video/*">
+
+    <button class="btn-primary" onclick="saveVente()">Enregistrer</button>
+  </div>
+</main>
+
 <nav class="menu-bas">
   <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
   <a href="commandes.html"><i class="fas fa-box"></i></a>
@@ -32,94 +42,7 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- MODAL AJOUT / EDIT PRODUIT -->
-<div id="venteModal" class="modal">
-  <div class="modal-content">
-
-    <h2>Produit à vendre</h2>
-
-    <label>Titre</label>
-    <input id="vTitre" placeholder="Nom du produit">
-
-    <label>Description</label>
-    <input id="vDesc" placeholder="Description du produit">
-
-    <label>Prix</label>
-    <input id="vPrix" type="number" placeholder="Ex : 2500">
-
-    <label>Média (image ou vidéo)</label>
-    <input id="vMedia" type="file" accept="image/*,video/*">
-
-    <button class="btn-primary" onclick="saveVente()">Enregistrer</button>
-    <button class="btn-danger" onclick="deleteVente()">Supprimer</button>
-    <button class="btn-cancel" onclick="closeVente()">Annuler</button>
-
-  </div>
-</div>
-
 <script>
-let currentVenteId = null;
-
-function loadVentes() {
-  const list = document.getElementById("venteList");
-  list.innerHTML = "";
-
-  let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
-
-  if (ventes.length === 0) {
-    list.innerHTML = "<p>Aucun produit en vente</p>";
-    return;
-  }
-
-  ventes.forEach(v => {
-    const div = document.createElement("div");
-    div.className = "client-item";
-    div.onclick = () => openEditVente(v.id);
-
-    let mediaHTML = "";
-    if (v.media && v.mediaType.startsWith("image")) {
-      mediaHTML = `<img src="${v.media}" style="width:60px;border-radius:8px;">`;
-    } else if (v.media && v.mediaType.startsWith("video")) {
-      mediaHTML = `<video src="${v.media}" width="60"></video>`;
-    }
-
-    div.innerHTML = `
-      <div>
-        <strong>${v.titre}</strong><br>
-        <small>${v.prix} HTG • ${v.date}</small>
-      </div>
-      ${mediaHTML}
-    `;
-
-    list.appendChild(div);
-  });
-}
-
-function openAddVente() {
-  currentVenteId = null;
-  vTitre.value = "";
-  vDesc.value = "";
-  vPrix.value = "";
-  vMedia.value = "";
-  venteModal.style.display = "flex";
-}
-
-function openEditVente(id) {
-  let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
-  let v = ventes.find(x => x.id === id);
-  if (!v) return;
-
-  currentVenteId = id;
-  vTitre.value = v.titre;
-  vDesc.value = v.desc;
-  vPrix.value = v.prix;
-  venteModal.style.display = "flex";
-}
-
-function closeVente() {
-  venteModal.style.display = "none";
-}
-
 function saveVente() {
   const titre = vTitre.value.trim();
   const desc = vDesc.value.trim();
@@ -127,7 +50,7 @@ function saveVente() {
   const file = vMedia.files[0];
 
   if (!titre || !prix) {
-    alert("Titre et prix requis");
+    alert("Titre et prix sont obligatoires");
     return;
   }
 
@@ -144,44 +67,21 @@ function saveVente() {
   }
 
   function storeVente(media, mediaType) {
-    if (currentVenteId) {
-      let i = ventes.findIndex(x => x.id === currentVenteId);
-      ventes[i] = {
-        ...ventes[i],
-        titre, desc, prix,
-        media: media || ventes[i].media,
-        mediaType: mediaType || ventes[i].mediaType
-      };
-    } else {
-      ventes.push({
-        id: Date.now(),
-        titre,
-        desc,
-        prix,
-        media,
-        mediaType,
-        date: new Date().toLocaleDateString()
-      });
-    }
+    ventes.push({
+      id: Date.now(),
+      titre,
+      desc,
+      prix,
+      media,
+      mediaType,
+      date: new Date().toLocaleDateString()
+    });
 
     localStorage.setItem("ventes", JSON.stringify(ventes));
-    closeVente();
-    loadVentes();
+    alert("Vente enregistrée !");
+    window.location.href = "achat.html"; // retour automatique
   }
 }
-
-function deleteVente() {
-  if (!currentVenteId) return;
-
-  let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
-  ventes = ventes.filter(x => x.id !== currentVenteId);
-
-  localStorage.setItem("ventes", JSON.stringify(ventes));
-  closeVente();
-  loadVentes();
-}
-
-document.addEventListener("DOMContentLoaded", loadVentes);
 </script>
 
 </body>
