@@ -1,1 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajouter client</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 
+<body>
+
+<header>
+  <h1>Ajouter un client</h1>
+</header>
+
+<main>
+
+  <div class="card">
+    <label>Nom du client</label>
+    <input type="text" id="clientNom" placeholder="Nom complet">
+
+    <label>Téléphone</label>
+    <input type="tel" id="clientTel" placeholder="+509...">
+
+    <button class="btn-primary" onclick="saveClient()">
+      Enregistrer
+    </button>
+  </div>
+
+</main>
+
+<!-- Bouton retour -->
+<button class="fab back" onclick="history.back()">
+  <i class="fas fa-arrow-left"></i>
+</button>
+
+<nav class="menu-bas">
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
+
+<script>
+function saveClient() {
+  const nom = document.getElementById("clientNom").value.trim();
+  const tel = document.getElementById("clientTel").value.trim();
+
+  if (nom === "" || tel === "") {
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
+
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+
+  clients.push({
+    id: Date.now(),
+    nom: nom,
+    tel: tel
+  });
+
+  localStorage.setItem("clients", JSON.stringify(clients));
+
+  alert("Client ajouté avec succès");
+  window.location.href = "clients.html";
+}
+</script>
+
+</body>
+</html>
