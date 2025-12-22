@@ -20,9 +20,10 @@
   <!-- Achats affichés ici -->
 </main>
 
+<!-- Bouton + ouvre vente.html -->
 <button class="fab" onclick="window.location.href='vente.html'">
-
-<div>
+  <i class="fas fa-plus"></i>
+</button>
 
 <!-- MENU BAS -->
 <nav class="menu-bas">
@@ -33,6 +34,29 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
+<!-- MODAL AJOUT / MODIFICATION -->
+<div id="achatModal" class="modal">
+  <div class="modal-content">
+
+    <h2>Achat</h2>
+
+    <label>Titre / Produit</label>
+    <input id="aTitre" placeholder="Ex : Achat stock">
+
+    <label>Description</label>
+    <input id="aDesc" placeholder="Détails de l'achat">
+
+    <label>Montant</label>
+    <input id="aMontant" type="number" placeholder="Ex : 3000">
+
+    <label>Date</label>
+    <input id="aDate" type="date">
+
+    <button class="btn-primary" onclick="saveAchat()">Enregistrer</button>
+    <button class="btn-danger" onclick="deleteAchat()">Supprimer</button>
+    <button class="btn-cancel" onclick="closeAchat()">Annuler</button>
+
+  </div>
 </div>
 
 <script>
@@ -64,15 +88,6 @@ function loadAchats() {
 
     list.appendChild(div);
   });
-}
-
-function openAddAchat() {
-  currentAchatId = null;
-  aTitre.value = "";
-  aDesc.value = "";
-  aMontant.value = "";
-  aDate.valueAsDate = new Date();
-  achatModal.style.display = "flex";
 }
 
 function openEditAchat(id) {
