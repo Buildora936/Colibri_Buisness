@@ -1,28 +1,98 @@
+/* Couleurs principales */
+:root {
+  --vert: #88D61EFE;
+  --bleu: #0F127AFF;
+  --blanc: #ffffff;
+}
+
+/* Global */
 body {
-  font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: var(--bleu);
+  color: var(--blanc);
 }
 
+/* Header */
 header {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px;
+  background-color: var(--bleu);
+  padding: 15px;
   text-align: center;
+  border-bottom: 2px solid var(--vert);
 }
 
+header h1 {
+  color: var(--vert);
+  margin: 0;
+}
+
+/* Contenu */
+main {
+  padding: 20px;
+  margin-bottom: 90px;
+}
+
+h2 {
+  color: var(--vert);
+}
+
+/* Menu bas */
 .menu-bas {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: #eee;
+  background-color: var(--bleu);
   display: flex;
   justify-content: space-around;
-  padding: 10px 0;
+  padding: 12px 0;
+  border-top: 2px solid var(--vert);
 }
 
 .menu-bas a {
+  color: var(--vert);
   text-decoration: none;
-  color: #333;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Bouton flottant (FAB WhatsApp style) */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background-color: var(--vert);
+  color: var(--bleu);
+  border-radius: 50%;
+  text-align: center;
+  line-height: 56px;
+  font-size: 32px;
+  text-decoration: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  font-weight: bold;
+}
+
+.fab:hover {
+  opacity: 0.9;
+}
+
+/* Inputs et boutons (pour les autres pages) */
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--vert);
+  color: var(--bleu);
+  border: none;
+  border-radius: 5px;
   font-weight: bold;
 }
