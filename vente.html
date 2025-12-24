@@ -13,26 +13,29 @@
 <body>
 
 <header>
-  <h1>Nouvelle Vente</h1>
+  <h1>Salle de Vente</h1>
 </header>
 
-<main>
-  <div class="card">
-    <label>Titre du produit</label>
-    <input id="vTitre" placeholder="Ex : Produit A">
+<!-- PUB BANNER -->
+<div class="pub-banner">
+  ESPACE PUBLICITAIRE
+</div>
 
-    <label>Description</label>
-    <input id="vDesc" placeholder="Description du produit">
+<main id="venteList"></main>
 
-    <label>Prix</label>
-    <input id="vPrix" type="number" placeholder="Ex : 1500 HTG">
+<button class="fab" onclick="openAddVente()">+</button>
 
-    <label>Média (image ou vidéo)</label>
-    <input id="vMedia" type="file" accept="image/*,video/*">
+<div id="modalVente" class="modal">
+  <div class="modal-content">
+    <h2>Nouveau produit</h2>
 
-    <button class="btn-primary" onclick="saveVente()">Enregistrer</button>
+    <input type="text" id="nomProduit" placeholder="Nom du produit">
+    <input type="number" id="prixProduit" placeholder="Prix">
+
+    <button onclick="saveVente()">Enregistrer</button>
+    <button onclick="closeVente()">Annuler</button>
   </div>
-</main>
+</div>
 
 <nav class="menu-bas">
   <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
@@ -43,45 +46,47 @@
 </nav>
 
 <script>
-function saveVente() {
-  const titre = vTitre.value.trim();
-  const desc = vDesc.value.trim();
-  const prix = vPrix.value;
-  const file = vMedia.files[0];
+let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
 
-  if (!titre || !prix) {
-    alert("Titre et prix sont obligatoires");
-    return;
-  }
-
-  let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
-
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function () {
-      storeVente(reader.result, file.type);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    storeVente(null, null);
-  }
-
-  function storeVente(media, mediaType) {
-    ventes.push({
-      id: Date.now(),
-      titre,
-      desc,
-      prix,
-      media,
-      mediaType,
-      date: new Date().toLocaleDateString()
-    });
-
-    localStorage.setItem("ventes", JSON.stringify(ventes));
-    alert("Vente enregistrée !");
-    window.location.href = "achat.html"; // retour automatique
-  }
+function openAddVente() {
+  document.getElementById("modalVente").style.display = "flex";
 }
+
+function closeVente() {
+  document.getElementById("modalVente").style.display = "none";
+}
+
+function saveVente() {
+  const nom = document.getElementById("nomProduit").value;
+  const prix = document.getElementById("prixProduit").value;
+
+  if (!nom || !prix) return alert("Champs requis");
+
+  ventes.push({ nom, prix });
+  localStorage.setItem("ventes", JSON.stringify(ventes));
+
+  closeVente();
+  loadVentes();
+}
+
+function loadVentes() {
+  const list = document.getElementById("venteList");
+  list.innerHTML = "";
+
+  ventes.forEach(v => {
+    const div = document.createElement("div");
+    div.className = "client-item";
+    div.innerHTML = `
+      <div>
+        <strong>${v.nom}</strong><br>
+        <small>${v.prix} HTG</small>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+loadVentes();
 </script>
 
 </body>
