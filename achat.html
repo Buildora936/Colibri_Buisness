@@ -51,7 +51,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
@@ -66,22 +66,42 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  function loadAchats() {
+  window.openAddVente = () => modalVente.style.display = "flex";
+  window.closeVente = () => modalVente.style.display = "none";
+
+  window.saveVente = async () => {
+    const nom = nomProduit.value.trim();
+    const prix = prixProduit.value.trim();
+    if (!nom || !prix) return alert("Champs requis");
+
+    await addDoc(collection(db, "produits"), {
+      nom,
+      prix: Number(prix),
+      date: new Date()
+    });
+
+    nomProduit.value = "";
+    prixProduit.value = "";
+    closeVente();
+  };
+
+  function loadVentes() {
     const q = query(collection(db, "produits"), orderBy("date", "desc"));
     onSnapshot(q, snapshot => {
-      achatList.innerHTML = "";
+      venteList.innerHTML = "";
       snapshot.forEach(doc => {
-        const a = doc.data();
+        const v = doc.data();
         const div = document.createElement("div");
         div.className = "client-item";
-        div.innerHTML = `<div><strong>${a.nom}</strong><br><small>${a.prix} HTG</small></div>`;
-        achatList.appendChild(div);
+        div.innerHTML = `<div><strong>${v.nom}</strong><br><small>${v.prix} HTG</small></div>`;
+        venteList.appendChild(div);
       });
     });
   }
 
-  loadAchats();
+  loadVentes();
 </script>
+  
 
 </body>
 </html>
