@@ -184,3 +184,44 @@ input {
   margin: 10px;
   font-weight: bold;
 }
+.chat-box {
+  padding: 10px;
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.chat-msg {
+  margin-bottom: 10px;
+}
+
+.chat-msg .msg {
+  background-color: #82CF1B;
+  color: #0F127A;
+  padding: 8px;
+  border-radius: 6px;
+  display: inline-block;
+  max-width: 80%;
+}
+
+.chat-input {
+  display: flex;
+  padding: 10px;
+  background-color: #0F127A;
+  border-top: 2px solid #82CF1B;
+}
+
+.chat-input input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #82CF1B;
+  color: #82CF1B;
+  padding: 8px;
+}
+
+.chat-input button {
+  background: #82CF1B;
+  color: #0F127A;
+  border: none;
+  padding: 8px 12px;
+  margin-left: 5px;
+}
