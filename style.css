@@ -175,3 +175,12 @@ input {
   border-radius: 10px;
   color: var(--text-light);
 }
+.pub-banner {
+  background-color: #0F127A;
+  border: 2px dashed #82CF1B;
+  color: #82CF1B;
+  text-align: center;
+  padding: 12px;
+  margin: 10px;
+  font-weight: bold;
+}
