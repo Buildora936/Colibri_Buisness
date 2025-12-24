@@ -48,48 +48,39 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<script>
-let achats = JSON.parse(localStorage.getItem("achats")) || [];
 
-function openAddAchat() {
-  document.getElementById("modalAchat").style.display = "flex";
-}
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-function closeAchat() {
-  document.getElementById("modalAchat").style.display = "none";
-}
+  const firebaseConfig = {
+    apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+    authDomain: "collibri-buisiness.firebaseapp.com",
+    projectId: "collibri-buisiness",
+    storageBucket: "collibri-buisiness.firebasestorage.app",
+    messagingSenderId: "812403400254",
+    appId: "1:812403400254:web:773de4e308a172d614fb6f",
+    measurementId: "G-PMS7V901Y1"
+  };
 
-function saveAchat() {
-  const nom = document.getElementById("nomAchat").value;
-  const montant = document.getElementById("montantAchat").value;
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  if (!nom || !montant) return alert("Champs requis");
+  function loadAchats() {
+    const q = query(collection(db, "produits"), orderBy("date", "desc"));
+    onSnapshot(q, snapshot => {
+      achatList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const a = doc.data();
+        const div = document.createElement("div");
+        div.className = "client-item";
+        div.innerHTML = `<div><strong>${a.nom}</strong><br><small>${a.prix} HTG</small></div>`;
+        achatList.appendChild(div);
+      });
+    });
+  }
 
-  achats.push({ nom, montant });
-  localStorage.setItem("achats", JSON.stringify(achats));
-
-  closeAchat();
   loadAchats();
-}
-
-function loadAchats() {
-  const list = document.getElementById("achatList");
-  list.innerHTML = "";
-
-  achats.forEach(a => {
-    const div = document.createElement("div");
-    div.className = "client-item";
-    div.innerHTML = `
-      <div>
-        <strong>${a.nom}</strong><br>
-        <small>${a.montant} HTG</small>
-      </div>
-    `;
-    list.appendChild(div);
-  });
-}
-
-loadAchats();
 </script>
 
 </body>
