@@ -41,53 +41,54 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<script>
-let chaines = JSON.parse(localStorage.getItem("chaines")) || [];
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-function openAddChaine() {
-  document.getElementById("modalChaine").style.display = "flex";
-}
+  const firebaseConfig = {
+    apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+    authDomain: "collibri-buisiness.firebaseapp.com",
+    projectId: "collibri-buisiness",
+    storageBucket: "collibri-buisiness.firebasestorage.app",
+    messagingSenderId: "812403400254",
+    appId: "1:812403400254:web:773de4e308a172d614fb6f",
+    measurementId: "G-PMS7V901Y1"
+  };
 
-function closeChaine() {
-  document.getElementById("modalChaine").style.display = "none";
-}
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-function saveChaine() {
-  const texte = document.getElementById("texteChaine").value;
-  if (!texte) return alert("Message vide");
+  window.openAddChaine = () => modalChaine.style.display = "flex";
+  window.closeChaine = () => modalChaine.style.display = "none";
 
-  chaines.unshift({
-    texte,
-    date: new Date().toLocaleString()
-  });
+  window.saveChaine = async () => {
+    const texte = texteChaine.value.trim();
+    if (!texte) return alert("Message vide");
 
-  localStorage.setItem("chaines", JSON.stringify(chaines));
-  document.getElementById("texteChaine").value = "";
+    await addDoc(collection(db, "annonces"), {
+      texte,
+      date: new Date()
+    });
 
-  closeChaine();
+    texteChaine.value = "";
+    closeChaine();
+  };
+
+  function loadChaines() {
+    const q = query(collection(db, "annonces"), orderBy("date", "desc"));
+    onSnapshot(q, snapshot => {
+      chaineList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const c = doc.data();
+        const div = document.createElement("div");
+        div.className = "client-item";
+        div.innerHTML = `<div><strong>Annonce</strong><br><small>${c.texte}</small><br><small style="opacity:0.6">${new Date(c.date.seconds * 1000).toLocaleString()}</small></div>`;
+        chaineList.appendChild(div);
+      });
+    });
+  }
+
   loadChaines();
-}
-
-function loadChaines() {
-  const list = document.getElementById("chaineList");
-  list.innerHTML = "";
-
-  chaines.forEach(c => {
-    const div = document.createElement("div");
-    div.className = "client-item";
-    div.innerHTML = `
-      <div>
-        <strong>Annonce</strong><br>
-        <small>${c.texte}</small><br>
-        <small style="opacity:0.6">${c.date}</small>
-      </div>
-    `;
-    list.appendChild(div);
-  });
-}
-
-loadChaines();
 </script>
-
 </body>
 </html>
