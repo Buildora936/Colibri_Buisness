@@ -13,19 +13,30 @@
 <body>
 
 <header>
-  <h1>Achats</h1>
+  <h1>Salle d’Achat</h1>
 </header>
 
-<main id="achatList">
-  <!-- Achats affichés ici -->
-</main>
+<!-- PUB BANNER -->
+<div class="pub-banner">
+  ESPACE PUBLICITAIRE
+</div>
 
-<!-- Bouton + ouvre vente.html -->
-<button class="fab" onclick="window.location.href='vente.html'">
-  <i class="fas fa-plus"></i>
-</button>
+<main id="achatList"></main>
 
-<!-- MENU BAS -->
+<button class="fab" onclick="openAddAchat()">+</button>
+
+<div id="modalAchat" class="modal">
+  <div class="modal-content">
+    <h2>Nouvel achat</h2>
+
+    <input type="text" id="nomAchat" placeholder="Produit / Service">
+    <input type="number" id="montantAchat" placeholder="Montant">
+
+    <button onclick="saveAchat()">Enregistrer</button>
+    <button onclick="closeAchat()">Annuler</button>
+  </div>
+</div>
+
 <nav class="menu-bas">
   <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
   <a href="commandes.html"><i class="fas fa-box"></i></a>
@@ -34,122 +45,48 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- MODAL AJOUT / MODIFICATION -->
-<div id="achatModal" class="modal">
-  <div class="modal-content">
-
-    <h2>Achat</h2>
-
-    <label>Titre / Produit</label>
-    <input id="aTitre" placeholder="Ex : Achat stock">
-
-    <label>Description</label>
-    <input id="aDesc" placeholder="Détails de l'achat">
-
-    <label>Montant</label>
-    <input id="aMontant" type="number" placeholder="Ex : 3000">
-
-    <label>Date</label>
-    <input id="aDate" type="date">
-
-    <button class="btn-primary" onclick="saveAchat()">Enregistrer</button>
-    <button class="btn-danger" onclick="deleteAchat()">Supprimer</button>
-    <button class="btn-cancel" onclick="closeAchat()">Annuler</button>
-
-  </div>
-</div>
-
 <script>
-let currentAchatId = null;
+let achats = JSON.parse(localStorage.getItem("achats")) || [];
+
+function openAddAchat() {
+  document.getElementById("modalAchat").style.display = "flex";
+}
+
+function closeAchat() {
+  document.getElementById("modalAchat").style.display = "none";
+}
+
+function saveAchat() {
+  const nom = document.getElementById("nomAchat").value;
+  const montant = document.getElementById("montantAchat").value;
+
+  if (!nom || !montant) return alert("Champs requis");
+
+  achats.push({ nom, montant });
+  localStorage.setItem("achats", JSON.stringify(achats));
+
+  closeAchat();
+  loadAchats();
+}
 
 function loadAchats() {
   const list = document.getElementById("achatList");
   list.innerHTML = "";
 
-  let achats = JSON.parse(localStorage.getItem("achats")) || [];
-
-  if (achats.length === 0) {
-    list.innerHTML = "<p>Aucun achat enregistré</p>";
-    return;
-  }
-
   achats.forEach(a => {
     const div = document.createElement("div");
     div.className = "client-item";
-    div.onclick = () => openEditAchat(a.id);
-
     div.innerHTML = `
       <div>
-        <strong>${a.titre}</strong><br>
-        <small>${a.desc} • ${a.montant} HTG • ${a.date}</small>
+        <strong>${a.nom}</strong><br>
+        <small>${a.montant} HTG</small>
       </div>
-      <i class="fas fa-pen"></i>
     `;
-
     list.appendChild(div);
   });
 }
 
-function openEditAchat(id) {
-  let achats = JSON.parse(localStorage.getItem("achats")) || [];
-  let a = achats.find(x => x.id === id);
-  if (!a) return;
-
-  currentAchatId = id;
-  aTitre.value = a.titre;
-  aDesc.value = a.desc;
-  aMontant.value = a.montant;
-  aDate.value = a.date;
-  achatModal.style.display = "flex";
-}
-
-function closeAchat() {
-  achatModal.style.display = "none";
-}
-
-function saveAchat() {
-  const titre = aTitre.value.trim();
-  const desc = aDesc.value.trim();
-  const montant = aMontant.value;
-  const date = aDate.value;
-
-  if (!titre || !montant || !date) {
-    alert("Titre, montant et date sont obligatoires");
-    return;
-  }
-
-  let achats = JSON.parse(localStorage.getItem("achats")) || [];
-
-  if (currentAchatId) {
-    let i = achats.findIndex(x => x.id === currentAchatId);
-    achats[i] = { id: currentAchatId, titre, desc, montant, date };
-  } else {
-    achats.push({
-      id: Date.now(),
-      titre,
-      desc,
-      montant,
-      date
-    });
-  }
-
-  localStorage.setItem("achats", JSON.stringify(achats));
-  closeAchat();
-  loadAchats();
-}
-
-function deleteAchat() {
-  if (!currentAchatId) return;
-
-  let achats = JSON.parse(localStorage.getItem("achats")) || [];
-  achats = achats.filter(x => x.id !== currentAchatId);
-
-  localStorage.setItem("achats", JSON.stringify(achats));
-  closeAchat();
-  loadAchats();
-}
-
-document.addEventListener("DOMContentLoaded", loadAchats);
+loadAchats();
 </script>
 
 </body>
