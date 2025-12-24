@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Discussion - Colibri Business</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <h1>Discussion client</h1>
+</header>
+
+<main id="chatBox" class="chat-box"></main>
+
+<div class="chat-input">
+  <input type="text" id="messageInput" placeholder="Écrire un message...">
+  <button onclick="sendMessage()">Envoyer</button>
+</div>
+
+<script>
+let messages = JSON.parse(localStorage.getItem("messages")) || [];
+
+function sendMessage() {
+  const text = document.getElementById("messageInput").value;
+  if (!text) return;
+
+  messages.push({
+    text,
+    time: new Date().toLocaleTimeString()
+  });
+
+  localStorage.setItem("messages", JSON.stringify(messages));
+  document.getElementById("messageInput").value = "";
+  loadMessages();
+}
+
+function loadMessages() {
+  const box = document.getElementById("chatBox");
+  box.innerHTML = "";
+
+  messages.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "chat-msg";
+    div.innerHTML = `
+      <div class="msg">${m.text}</div>
+      <small>${m.time}</small>
+    `;
+    box.appendChild(div);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+loadMessages();
+</script>
+
+</body>
+</html>
