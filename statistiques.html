@@ -16,8 +16,38 @@
   <h1>Statistiques</h1>
 </header>
 
-<main style="padding:20px; text-align:center;">
-  <p>Données en préparation…</p>
+<main class="stats-container">
+
+  <div class="stat-card">
+    <span>💰 Total ventes</span>
+    <strong id="totalVentes">0 HTG</strong>
+  </div>
+
+  <div class="stat-card">
+    <span>💸 Total achats</span>
+    <strong id="totalAchats">0 HTG</strong>
+  </div>
+
+  <div class="stat-card">
+    <span>💳 Paiements reçus</span>
+    <strong id="totalPaiements">0 HTG</strong>
+  </div>
+
+  <div class="stat-card">
+    <span>📊 Bénéfice</span>
+    <strong id="benefice">0 HTG</strong>
+  </div>
+
+  <div class="stat-card">
+    <span>📦 Commandes</span>
+    <strong id="totalCommandes">0</strong>
+  </div>
+
+  <div class="stat-card">
+    <span>👥 Clients</span>
+    <strong id="totalClients">0</strong>
+  </div>
+
 </main>
 
 <nav class="menu-bas">
@@ -27,6 +57,39 @@
   <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
+
+<script>
+function calcStats() {
+
+  let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
+  let achats = JSON.parse(localStorage.getItem("achats")) || [];
+  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+
+  let totalVentes = ventes.reduce((s, v) => s + Number(v.prix || 0), 0);
+  let totalAchats = achats.reduce((s, a) => s + Number(a.montant || 0), 0);
+  let totalPaiements = paiements.reduce((s, p) => s + Number(p.montant || 0), 0);
+
+  let benefice = totalPaiements - totalAchats;
+
+  totalVentesEl.innerText = totalVentes + " HTG";
+  totalAchatsEl.innerText = totalAchats + " HTG";
+  totalPaiementsEl.innerText = totalPaiements + " HTG";
+  beneficeEl.innerText = benefice + " HTG";
+  totalCommandesEl.innerText = commandes.length;
+  totalClientsEl.innerText = clients.length;
+}
+
+const totalVentesEl = document.getElementById("totalVentes");
+const totalAchatsEl = document.getElementById("totalAchats");
+const totalPaiementsEl = document.getElementById("totalPaiements");
+const beneficeEl = document.getElementById("benefice");
+const totalCommandesEl = document.getElementById("totalCommandes");
+const totalClientsEl = document.getElementById("totalClients");
+
+calcStats();
+</script>
 
 </body>
 </html>
