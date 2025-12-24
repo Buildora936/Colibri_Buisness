@@ -20,22 +20,22 @@
 
   <div class="stat-card">
     <span>💰 Total ventes</span>
-    <strong id="totalVentes">0 HTG</strong>
+    <strong id="totalVentes">0 $</strong>
   </div>
 
   <div class="stat-card">
     <span>💸 Total achats</span>
-    <strong id="totalAchats">0 HTG</strong>
+    <strong id="totalAchats">0 $</strong>
   </div>
 
   <div class="stat-card">
     <span>💳 Paiements reçus</span>
-    <strong id="totalPaiements">0 HTG</strong>
+    <strong id="totalPaiements">0 $</strong>
   </div>
 
   <div class="stat-card">
     <span>📊 Bénéfice</span>
-    <strong id="benefice">0 HTG</strong>
+    <strong id="benefice">0 $</strong>
   </div>
 
   <div class="stat-card">
@@ -73,10 +73,10 @@ function calcStats() {
 
   let benefice = totalPaiements - totalAchats;
 
-  totalVentesEl.innerText = totalVentes + " HTG";
-  totalAchatsEl.innerText = totalAchats + " HTG";
-  totalPaiementsEl.innerText = totalPaiements + " HTG";
-  beneficeEl.innerText = benefice + " HTG";
+  totalVentesEl.innerText = totalVentes + " $";
+  totalAchatsEl.innerText = totalAchats + " $";
+  totalPaiementsEl.innerText = totalPaiements + " $";
+  beneficeEl.innerText = benefice + " $";
   totalCommandesEl.innerText = commandes.length;
   totalClientsEl.innerText = clients.length;
 }
@@ -93,3 +93,4 @@ calcStats();
 
 </body>
 </html>
+✅ Tous les montants sont maintenant
