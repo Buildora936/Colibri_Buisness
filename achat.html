@@ -2,71 +2,58 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Achat - Colibri Business</title>
+<title>Salle d’Achat - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet"
- href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:12px;
-  padding:12px;
-}
-.card {
-  background:#fff;
-  border-radius:14px;
-  padding:10px;
-  position:relative;
-}
-.card img {
-  width:100%;
-  height:150px;
-  object-fit:cover;
-  border-radius:12px;
-}
-.price { color:#82CF1B; font-weight:bold }
-.heart {
-  position:absolute;
-  top:10px;
-  right:10px;
-  font-size:20px;
-  cursor:pointer;
-}
-.heart.red { color:red }
-.fab {
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  width:60px;height:60px;
-  border-radius:50%;
-  background:#82CF1B;
-  color:white;
-  font-size:28px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+body{margin:0;font-family:Arial;background:#f5f5f5}
+header{padding:16px;background:#82CF1B;color:white;text-align:center;font-size:22px;font-weight:bold}
+.pub-banner{padding:12px;background:#d3d3d3;text-align:center;margin:12px;border-radius:12px}
+.menu-bas{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
+.menu-bas a{color:#555;font-size:20px;text-decoration:none}
+.container{padding:12px}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.card img{width:100%;border-radius:12px;margin-bottom:8px}
+.card h3{margin:0;font-size:18px;color:#333}
+.card .price{color:#82CF1B;font-weight:bold;margin:6px 0}
+.card .heart{font-size:22px;cursor:pointer;align-self:flex-end}
+.card .heart.red{color:red}
+.card small{opacity:0.7}
+.search-bar{display:flex;margin:12px;gap:8px}
+.search-bar input, .search-bar select{flex:1;padding:10px;border-radius:10px;border:1px solid #ccc}
+.fab{position:fixed;bottom:70px;right:16px;background:#82CF1B;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer}
 </style>
 </head>
 
 <body>
 
-<header><h1>Marketplace</h1></header>
+<header>Salle d’Achat</header>
+<div class="pub-banner">ESPACE PUBLICITAIRE</div>
 
-<main class="grid" id="list"></main>
+<div class="search-bar">
+ <input id="search" placeholder="Rechercher un produit">
+ <select id="filter">
+   <option value="">Tous les vendeurs</option>
+ </select>
+</div>
+
+<div class="container" id="achatList"></div>
 
 <div class="fab" onclick="location.href='vente.html'">+</div>
 
+<nav class="menu-bas">
+ <a href="index.html"><i class="fas fa-home"></i></a>
+ <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+ <a href="commandes.html"><i class="fas fa-box"></i></a>
+ <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+ <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+ <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, remove }
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-import { getAuth, signInAnonymously }
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
@@ -75,37 +62,61 @@ const app = initializeApp({
  projectId:"collibri-buisiness"
 });
 
-const auth = getAuth(app);
 const db = getDatabase(app);
-signInAnonymously(auth);
+const achatList = document.getElementById("achatList");
+const searchInput = document.getElementById("search");
+const filterSelect = document.getElementById("filter");
 
-const list = document.getElementById("list");
+let produits = [];
 
-onValue(ref(db,"produits"), snap=>{
- list.innerHTML="";
- snap.forEach(p=>{
-  const d=p.val();
-  const card=document.createElement("div");
-  card.className="card";
-  card.innerHTML=`
-   <span class="heart" id="h-${p.key}" onclick="fav('${p.key}')">🤍</span>
-   <img src="${d.image}">
-   <div onclick="location.href='produit.html?id=${p.key}'">
-    <strong>${d.nom}</strong><br>
-    <span class="price">${d.prix} USD</span>
-   </div>`;
-  list.appendChild(card);
- });
-});
+async function loadProduits(){
+ const snap = await get(ref(db,"produits"));
+ produits = snap.exists()?Object.entries(snap.val()).map(([id,v])=>({...v,id})):[];
 
-window.fav=id=>{
- const uid=auth.currentUser.uid;
- const f=ref(db,`favoris/${uid}/${id}`);
- onValue(f,s=>{
-  s.exists()?remove(f):set(f,true);
-  document.getElementById("h-"+id).classList.toggle("red");
- },{once:true});
+ // remplir filtre vendeur
+ const vendeurs = [...new Set(produits.map(p=>p.vendeurId))];
+ filterSelect.innerHTML='<option value="">Tous les vendeurs</option>';
+ vendeurs.forEach(v=>filterSelect.innerHTML+=`<option value="${v}">${v}</option>`);
+
+ renderProduits();
 }
+
+function renderProduits(){
+ const search = searchInput.value.toLowerCase();
+ const filter = filterSelect.value;
+ achatList.innerHTML="";
+ produits.filter(p=>{
+   return (p.nom.toLowerCase().includes(search)) && (!filter || p.vendeurId===filter);
+ }).forEach(p=>{
+   const div=document.createElement("div");
+   div.className="card";
+   div.innerHTML=`
+     <span class="heart" id="fav-${p.id}">🤍</span>
+     <img src="${p.image}" onclick="location.href='produit.html?id=${p.id}'">
+     <h3>${p.nom}</h3>
+     <div class="price">${p.prix} USD</div>
+     <small>${p.description.slice(0,60)}...</small>
+   `;
+   achatList.appendChild(div);
+
+   // favori toggle
+   const heart = div.querySelector(".heart");
+   const uid = "public"; // pour démo favoris global
+   import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+   const favRef = ref(db,`favoris/${uid}/${p.id}`);
+   get(favRef).then(s=>{if(s.exists()) heart.classList.add("red");});
+   heart.onclick=async()=>{
+     const s = await get(favRef);
+     s.exists()?remove(favRef):set(favRef,true);
+     heart.classList.toggle("red");
+   };
+ });
+}
+
+searchInput.oninput=renderProduits;
+filterSelect.onchange=renderProduits;
+
+loadProduits();
 </script>
 
 </body>
