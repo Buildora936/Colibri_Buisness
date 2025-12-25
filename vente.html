@@ -16,26 +16,20 @@
   <h1>Salle de Vente</h1>
 </header>
 
-<!-- PUB BANNER -->
-<div class="pub-banner">
-  ESPACE PUBLICITAIRE
-</div>
+<div class="pub-banner">ESPACE PUBLICITAIRE</div>
+
+<!-- FORMULAIRE PRODUIT (VISIBLE) -->
+<section style="padding:15px">
+  <h2>Publier un produit</h2>
+
+  <input type="text" id="nomProduit" placeholder="Nom du produit">
+  <input type="number" id="prixProduit" placeholder="Prix (HTG)">
+  <input type="url" id="imageProduit" placeholder="Lien de l’image (https://...)">
+
+  <button onclick="saveVente()">Publier</button>
+</section>
 
 <main id="venteList"></main>
-
-<button class="fab" onclick="openAddVente()">+</button>
-
-<div id="modalVente" class="modal">
-  <div class="modal-content">
-    <h2>Nouveau produit</h2>
-
-    <input type="text" id="nomProduit" placeholder="Nom du produit">
-    <input type="number" id="prixProduit" placeholder="Prix">
-
-    <button onclick="saveVente()">Enregistrer</button>
-    <button onclick="closeVente()">Annuler</button>
-  </div>
-</div>
 
 <nav class="menu-bas">
   <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
@@ -45,48 +39,67 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<script>
-let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
+<!-- 🔥 SCRIPT FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    push,
+    onValue
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-function openAddVente() {
-  document.getElementById("modalVente").style.display = "flex";
-}
+  const firebaseConfig = {
+    apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+    authDomain: "collibri-buisiness.firebaseapp.com",
+    databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
+    projectId: "collibri-buisiness",
+    storageBucket: "collibri-buisiness.firebasestorage.app",
+    messagingSenderId: "812403400254",
+    appId: "1:812403400254:web:773de4e308a172d614fb6f"
+  };
 
-function closeVente() {
-  document.getElementById("modalVente").style.display = "none";
-}
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const produitsRef = ref(db, "produits");
 
-function saveVente() {
-  const nom = document.getElementById("nomProduit").value;
-  const prix = document.getElementById("prixProduit").value;
+  window.saveVente = () => {
+    const nom = nomProduit.value.trim();
+    const prix = prixProduit.value.trim();
+    const image = imageProduit.value.trim();
 
-  if (!nom || !prix) return alert("Champs requis");
+    if (!nom || !prix || !image) {
+      alert("Tous les champs sont obligatoires");
+      return;
+    }
 
-  ventes.push({ nom, prix });
-  localStorage.setItem("ventes", JSON.stringify(ventes));
+    push(produitsRef, {
+      nom,
+      prix,
+      image,
+      date: Date.now()
+    });
 
-  closeVente();
-  loadVentes();
-}
+    nomProduit.value = "";
+    prixProduit.value = "";
+    imageProduit.value = "";
+  };
 
-function loadVentes() {
-  const list = document.getElementById("venteList");
-  list.innerHTML = "";
+  onValue(produitsRef, snapshot => {
+    venteList.innerHTML = "";
+    snapshot.forEach(child => {
+      const p = child.val();
 
-  ventes.forEach(v => {
-    const div = document.createElement("div");
-    div.className = "client-item";
-    div.innerHTML = `
-      <div>
-        <strong>${v.nom}</strong><br>
-        <small>${v.prix} HTG</small>
-      </div>
-    `;
-    list.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "client-item";
+      div.innerHTML = `
+        <img src="${p.image}" style="width:100%;border-radius:10px;margin-bottom:8px">
+        <strong>${p.nom}</strong><br>
+        <small>${p.prix} HTG</small>
+      `;
+      venteList.prepend(div);
+    });
   });
-}
-
-loadVentes();
 </script>
 
 </body>
