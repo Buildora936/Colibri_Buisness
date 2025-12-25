@@ -1,114 +1,111 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Achat - Colibri Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Achat - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <style>
-    /* Bouton flottant + */
-    .fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #82CF1B;
-      color: white;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 28px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      cursor: pointer;
-      z-index: 100;
-    }
-
-    .favorite-btn {
-      background: none;
-      border: none;
-      color: #ff5252;
-      font-size: 20px;
-      cursor: pointer;
-    }
-  </style>
+<style>
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  padding:12px;
+}
+.card {
+  background:#fff;
+  border-radius:14px;
+  padding:10px;
+  position:relative;
+}
+.card img {
+  width:100%;
+  height:150px;
+  object-fit:cover;
+  border-radius:12px;
+}
+.price { color:#82CF1B; font-weight:bold }
+.heart {
+  position:absolute;
+  top:10px;
+  right:10px;
+  font-size:20px;
+  cursor:pointer;
+}
+.heart.red { color:red }
+.fab {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:60px;height:60px;
+  border-radius:50%;
+  background:#82CF1B;
+  color:white;
+  font-size:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>Salle d’Achat</h1>
-</header>
+<header><h1>Marketplace</h1></header>
 
-<div class="pub-banner">ESPACE PUBLICITAIRE</div>
+<main class="grid" id="list"></main>
 
-<main id="achatList" style="padding:16px"></main>
-
-<!-- Bouton flottant + pour aller sur vente.html -->
-<div class="fab" onclick="window.location.href='vente.html'">
-  <i class="fas fa-plus"></i>
-</div>
-
-<nav class="menu-bas">
-  <a href="index.html"><i class="fas fa-home"></i></a>
-  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
-  <a href="commandes.html"><i class="fas fa-box"></i></a>
-  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
-  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
-  <a href="chaines.html"><i class="fas fa-rss"></i></a>
-</nav>
+<div class="fab" onclick="location.href='vente.html'">+</div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getDatabase, ref, onValue, push } from
-    "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove }
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, signInAnonymously }
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
-    authDomain: "collibri-buisiness.firebaseapp.com",
-    databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
-    projectId: "collibri-buisiness",
-    messagingSenderId: "812403400254",
-    appId: "1:812403400254:web:773de4e308a172d614fb6f"
-  };
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const produitsRef = ref(db, "produits");
-  const favorisRef = ref(db, "favoris");
+const auth = getAuth(app);
+const db = getDatabase(app);
+signInAnonymously(auth);
 
-  function toggleFavori(produitId) {
-    push(favorisRef, { produitId, date: Date.now() });
-    alert("Produit ajouté aux favoris !");
-  }
+const list = document.getElementById("list");
 
-  onValue(produitsRef, snap => {
-    const list = document.getElementById("achatList");
-    list.innerHTML = "";
+onValue(ref(db,"produits"), snap=>{
+ list.innerHTML="";
+ snap.forEach(p=>{
+  const d=p.val();
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=`
+   <span class="heart" id="h-${p.key}" onclick="fav('${p.key}')">🤍</span>
+   <img src="${d.image}">
+   <div onclick="location.href='produit.html?id=${p.key}'">
+    <strong>${d.nom}</strong><br>
+    <span class="price">${d.prix} USD</span>
+   </div>`;
+  list.appendChild(card);
+ });
+});
 
-    snap.forEach(p => {
-      const data = p.val();
-      const div = document.createElement("div");
-      div.className = "client-item";
-      div.style.position = "relative";
-      div.innerHTML = `
-        <img src="${data.image}" style="width:100%;border-radius:12px;margin-bottom:8px">
-        <strong>${data.nom}</strong><br>
-        <small>${data.prix} USD</small>
-        <button class="favorite-btn" onclick="toggleFavori('${p.key}')">
-          <i class="fas fa-heart"></i>
-        </button>
-      `;
-      list.appendChild(div);
-    });
-  });
-
-  window.toggleFavori = toggleFavori;
+window.fav=id=>{
+ const uid=auth.currentUser.uid;
+ const f=ref(db,`favoris/${uid}/${id}`);
+ onValue(f,s=>{
+  s.exists()?remove(f):set(f,true);
+  document.getElementById("h-"+id).classList.toggle("red");
+ },{once:true});
+}
 </script>
 
 </body>
