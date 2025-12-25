@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Vente - Colibri Business</title>
+  <title>Publier un produit - Colibri Business</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="style.css">
@@ -18,22 +18,27 @@
 
 <div class="pub-banner">ESPACE PUBLICITAIRE</div>
 
-<section style="padding:16px">
-  <input id="vendeur" placeholder="Nom du vendeur">
-  <input id="nomProduit" placeholder="Nom du produit">
-  <input id="prixProduit" type="number" placeholder="Prix (USD)">
-  <input id="imageProduit" placeholder="Lien image (https://...)">
+<main style="padding:16px">
 
-  <button class="btn-primary" onclick="publierProduit()">
-    Publier le produit
-  </button>
-</section>
+  <div class="card">
+    <label>Nom du vendeur</label>
+    <input id="vendeur" placeholder="Ex : Jean Store">
 
-<section style="padding:16px">
-  <input id="search" placeholder="🔍 Rechercher un produit..." oninput="filtrer()">
-</section>
+    <label>Nom du produit</label>
+    <input id="nomProduit" placeholder="Ex : Casque Bluetooth">
 
-<main id="venteList"></main>
+    <label>Prix (USD)</label>
+    <input id="prixProduit" type="number" placeholder="Ex : 25">
+
+    <label>Lien de l’image</label>
+    <input id="imageProduit" placeholder="https://...">
+
+    <button class="btn-primary" onclick="publierProduit()">
+      Publier le produit
+    </button>
+  </div>
+
+</main>
 
 <nav class="menu-bas">
   <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
@@ -43,11 +48,14 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- FIREBASE -->
+<!-- 🔥 FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue } from
-    "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+  import {
+    getDatabase,
+    ref,
+    push
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
@@ -60,64 +68,33 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const refProduits = ref(db, "produits");
-
-  let produits = [];
+  const produitsRef = ref(db, "produits");
 
   window.publierProduit = () => {
-    if (!vendeur.value || !nomProduit.value || !prixProduit.value || !imageProduit.value) {
-      alert("Tous les champs sont requis");
+    const v = vendeur.value.trim();
+    const n = nomProduit.value.trim();
+    const p = prixProduit.value.trim();
+    const i = imageProduit.value.trim();
+
+    if (!v || !n || !p || !i) {
+      alert("Tous les champs sont obligatoires");
       return;
     }
 
-    push(refProduits, {
-      vendeur: vendeur.value,
-      nom: nomProduit.value,
-      prix: prixProduit.value,
-      image: imageProduit.value,
+    push(produitsRef, {
+      vendeur: v,
+      nom: n,
+      prix: p,
+      image: i,
       date: Date.now()
     });
 
-    vendeur.value = nomProduit.value = prixProduit.value = imageProduit.value = "";
-  };
+    vendeur.value = "";
+    nomProduit.value = "";
+    prixProduit.value = "";
+    imageProduit.value = "";
 
-  onValue(refProduits, snap => {
-    produits = [];
-    snap.forEach(c => produits.push(c.val()));
-    afficher(produits);
-  });
-
-  function afficher(list) {
-    venteList.innerHTML = "";
-    list.reverse().forEach(p => {
-      const div = document.createElement("div");
-      div.className = "client-item";
-
-      div.innerHTML = `
-        <div style="position:relative">
-          <img src="${p.image}" style="width:100%;border-radius:12px">
-          <div style="position:absolute;top:8px;right:8px">⋮</div>
-        </div>
-
-        <strong>${p.nom}</strong><br>
-        <small>${p.prix} USD</small><br>
-        <small>👤 ${p.vendeur}</small><br>
-
-        <button style="margin-top:8px;width:100%" onclick="commander('${p.nom}')">
-          Commander
-        </button>
-      `;
-      venteList.appendChild(div);
-    });
-  }
-
-  window.filtrer = () => {
-    const v = search.value.toLowerCase();
-    afficher(produits.filter(p => p.nom.toLowerCase().includes(v)));
-  };
-
-  window.commander = nom => {
-    alert("Commande pour : " + nom);
+    alert("Produit publié avec succès");
   };
 </script>
 
