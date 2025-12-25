@@ -13,20 +13,24 @@
 <body>
 
 <header>
-  <h1>Salle de Vente</h1>
+  <h1>Publier un produit</h1>
 </header>
 
 <div class="pub-banner">ESPACE PUBLICITAIRE</div>
 
-<!-- FORMULAIRE PRODUIT (VISIBLE) -->
-<section style="padding:15px">
-  <h2>Publier un produit</h2>
+<section style="padding:16px">
+  <input id="vendeur" placeholder="Nom du vendeur">
+  <input id="nomProduit" placeholder="Nom du produit">
+  <input id="prixProduit" type="number" placeholder="Prix (USD)">
+  <input id="imageProduit" placeholder="Lien image (https://...)">
 
-  <input type="text" id="nomProduit" placeholder="Nom du produit">
-  <input type="number" id="prixProduit" placeholder="Prix (HTG)">
-  <input type="url" id="imageProduit" placeholder="Lien de l’image (https://...)">
+  <button class="btn-primary" onclick="publierProduit()">
+    Publier le produit
+  </button>
+</section>
 
-  <button onclick="saveVente()">Publier</button>
+<section style="padding:16px">
+  <input id="search" placeholder="🔍 Rechercher un produit..." oninput="filtrer()">
 </section>
 
 <main id="venteList"></main>
@@ -39,67 +43,82 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- 🔥 SCRIPT FIREBASE -->
+<!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import {
-    getDatabase,
-    ref,
-    push,
-    onValue
-  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+  import { getDatabase, ref, push, onValue } from
+    "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
     authDomain: "collibri-buisiness.firebaseapp.com",
     databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
     projectId: "collibri-buisiness",
-    storageBucket: "collibri-buisiness.firebasestorage.app",
     messagingSenderId: "812403400254",
     appId: "1:812403400254:web:773de4e308a172d614fb6f"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const produitsRef = ref(db, "produits");
+  const refProduits = ref(db, "produits");
 
-  window.saveVente = () => {
-    const nom = nomProduit.value.trim();
-    const prix = prixProduit.value.trim();
-    const image = imageProduit.value.trim();
+  let produits = [];
 
-    if (!nom || !prix || !image) {
-      alert("Tous les champs sont obligatoires");
+  window.publierProduit = () => {
+    if (!vendeur.value || !nomProduit.value || !prixProduit.value || !imageProduit.value) {
+      alert("Tous les champs sont requis");
       return;
     }
 
-    push(produitsRef, {
-      nom,
-      prix,
-      image,
+    push(refProduits, {
+      vendeur: vendeur.value,
+      nom: nomProduit.value,
+      prix: prixProduit.value,
+      image: imageProduit.value,
       date: Date.now()
     });
 
-    nomProduit.value = "";
-    prixProduit.value = "";
-    imageProduit.value = "";
+    vendeur.value = nomProduit.value = prixProduit.value = imageProduit.value = "";
   };
 
-  onValue(produitsRef, snapshot => {
-    venteList.innerHTML = "";
-    snapshot.forEach(child => {
-      const p = child.val();
+  onValue(refProduits, snap => {
+    produits = [];
+    snap.forEach(c => produits.push(c.val()));
+    afficher(produits);
+  });
 
+  function afficher(list) {
+    venteList.innerHTML = "";
+    list.reverse().forEach(p => {
       const div = document.createElement("div");
       div.className = "client-item";
+
       div.innerHTML = `
-        <img src="${p.image}" style="width:100%;border-radius:10px;margin-bottom:8px">
+        <div style="position:relative">
+          <img src="${p.image}" style="width:100%;border-radius:12px">
+          <div style="position:absolute;top:8px;right:8px">⋮</div>
+        </div>
+
         <strong>${p.nom}</strong><br>
-        <small>${p.prix} HTG</small>
+        <small>${p.prix} USD</small><br>
+        <small>👤 ${p.vendeur}</small><br>
+
+        <button style="margin-top:8px;width:100%" onclick="commander('${p.nom}')">
+          Commander
+        </button>
       `;
-      venteList.prepend(div);
+      venteList.appendChild(div);
     });
-  });
+  }
+
+  window.filtrer = () => {
+    const v = search.value.toLowerCase();
+    afficher(produits.filter(p => p.nom.toLowerCase().includes(v)));
+  };
+
+  window.commander = nom => {
+    alert("Commande pour : " + nom);
+  };
 </script>
 
 </body>
