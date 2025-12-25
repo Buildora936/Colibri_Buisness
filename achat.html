@@ -7,22 +7,22 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-body{margin:0;font-family:Arial;background:#f5f5f5}
-header{padding:16px;background:#82CF1B;color:white;text-align:center;font-size:22px;font-weight:bold}
-.pub-banner{padding:12px;background:#d3d3d3;text-align:center;margin:12px;border-radius:12px}
-.menu-bas{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
-.menu-bas a{color:#555;font-size:20px;text-decoration:none}
+body{margin:0;font-family:Arial;background:#e6f0ff} /* fond bleu clair */
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold} /* bleu foncé */
+.pub-banner{padding:12px;background:#93c5fd;text-align:center;margin:12px;border-radius:12px} /* bleu moyen */
+.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
+.menu-bas a{color:white;font-size:20px;text-decoration:none}
 .container{padding:12px}
 .card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
 .card img{width:100%;border-radius:12px;margin-bottom:8px}
-.card h3{margin:0;font-size:18px;color:#333}
-.card .price{color:#82CF1B;font-weight:bold;margin:6px 0}
+.card h3{margin:0;font-size:18px;color:#1E3A8A} /* titre produit bleu foncé */
+.card .price{color:#1E40AF;font-weight:bold;margin:6px 0} /* prix bleu */
 .card .heart{font-size:22px;cursor:pointer;align-self:flex-end}
 .card .heart.red{color:red}
 .card small{opacity:0.7}
 .search-bar{display:flex;margin:12px;gap:8px}
 .search-bar input, .search-bar select{flex:1;padding:10px;border-radius:10px;border:1px solid #ccc}
-.fab{position:fixed;bottom:70px;right:16px;background:#82CF1B;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer}
+.fab{position:fixed;bottom:70px;right:16px;background:#1E3A8A;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer}
 </style>
 </head>
 
@@ -73,7 +73,6 @@ async function loadProduits(){
  const snap = await get(ref(db,"produits"));
  produits = snap.exists()?Object.entries(snap.val()).map(([id,v])=>({...v,id})):[];
 
- // remplir filtre vendeur
  const vendeurs = [...new Set(produits.map(p=>p.vendeurId))];
  filterSelect.innerHTML='<option value="">Tous les vendeurs</option>';
  vendeurs.forEach(v=>filterSelect.innerHTML+=`<option value="${v}">${v}</option>`);
@@ -99,9 +98,8 @@ function renderProduits(){
    `;
    achatList.appendChild(div);
 
-   // favori toggle
    const heart = div.querySelector(".heart");
-   const uid = "public"; // pour démo favoris global
+   const uid = "public";
    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
    const favRef = ref(db,`favoris/${uid}/${p.id}`);
    get(favRef).then(s=>{if(s.exists()) heart.classList.add("red");});
