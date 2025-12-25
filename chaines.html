@@ -18,10 +18,6 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 .card small{opacity:0.7}
 .card img{width:100%;border-radius:12px;margin-top:8px}
 .card iframe{width:100%;height:180px;border-radius:12px;margin-top:8px}
-textarea,input{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-top:8px}
-button{padding:10px 14px;margin-top:8px;border:none;border-radius:10px;cursor:pointer;font-weight:bold}
-.btn-primary{background:#1E3A8A;color:white}
-.btn-danger{background:red;color:white}
 .heart{font-size:28px;cursor:pointer;float:right}
 .heart.red{color:red}
 .search-container{margin:12px;display:flex;gap:8px}
@@ -38,14 +34,6 @@ button{padding:10px 14px;margin-top:8px;border:none;border-radius:10px;cursor:po
   <input type="text" id="searchInput" placeholder="Rechercher une annonce...">
 </div>
 
-<div class="container">
-  <h3>Ajouter une annonce</h3>
-  <textarea id="texteChaine" placeholder="Écris ton annonce..."></textarea>
-  <input type="text" id="imageChaine" placeholder="URL image (facultatif)">
-  <input type="text" id="videoChaine" placeholder="URL vidéo YouTube (facultatif)">
-  <button class="btn-primary" onclick="saveChaine()">Publier</button>
-</div>
-
 <div class="container" id="chaineList"></div>
 
 <nav class="menu-bas">
@@ -58,7 +46,7 @@ button{padding:10px 14px;margin-top:8px;border:none;border-radius:10px;cursor:po
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 // Init Firebase
 const app = initializeApp({
@@ -69,27 +57,9 @@ const app = initializeApp({
 });
 const db = getDatabase(app);
 
+// Toggle favori
 const currentUser = "utilisateur1"; // simulateur utilisateur connecté
 const chaineList = document.getElementById("chaineList");
-
-// Ajouter une annonce
-async function saveChaine(){
- const texte = document.getElementById("texteChaine").value.trim();
- const image = document.getElementById("imageChaine").value.trim();
- const video = document.getElementById("videoChaine").value.trim();
-
- if(!texte){alert("Message vide"); return;}
-
- const newRef = push(ref(db,"chaines"));
- await set(newRef,{
-   texte, image, video, userId: currentUser, date:new Date().toLocaleString()
- });
-
- document.getElementById("texteChaine").value="";
- document.getElementById("imageChaine").value="";
- document.getElementById("videoChaine").value="";
- loadChaines();
-}
 
 // Charger toutes les annonces
 async function loadChaines(){
@@ -110,7 +80,6 @@ async function loadChaines(){
      <p>${c.texte}</p>
      ${c.image?`<img src="${c.image}" alt="image">`:``}
      ${c.video?`<iframe src="${c.video}" frameborder="0" allowfullscreen></iframe>`:``}
-     ${c.userId===currentUser?`<button class="btn-danger" id="suppr-${id}">Supprimer</button>`:""}
    `;
    chaineList.appendChild(div);
 
@@ -119,20 +88,9 @@ async function loadChaines(){
    favBtn.onclick = async ()=>{
      const favRef = ref(db,`favoris/${currentUser}/${id}`);
      const s = await get(favRef);
-     s.exists()?remove(favRef):set(favRef,true);
+     s.exists()?null:set(favRef,true);
      favBtn.classList.toggle("red");
    };
-
-   // Supprimer si utilisateur propriétaire
-   const supBtn = document.getElementById(`suppr-${id}`);
-   if(supBtn){
-     supBtn.onclick = async ()=>{
-       if(confirm("Supprimer cette annonce ?")){
-         await remove(ref(db,`chaines/${id}`));
-         loadChaines();
-       }
-     }
-   }
  });
 }
 
