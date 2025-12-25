@@ -98,9 +98,7 @@
     alert(`Commande : ${produit}\nVendeur : ${vendeur}`);
   };
 
-  // 👤 PROFIL VENDEUR (MINI)
-  window.voirVendeur = vendeur => {
-    alert("Profil vendeur : " + vendeur);
+  window.location.href = `vendeur.html?vendeur=${encodeURIComponent(vendeur)}`;
   };
 </script>
 
