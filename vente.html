@@ -1,134 +1,76 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Vente - Colibri Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Publier - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <style>
-    .form-box {
-      padding: 16px;
-    }
-
-    .form-box input, .form-box textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    .btn-publish {
-      background: #82CF1B;
-      color: white;
-      padding: 14px;
-      width: 100%;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .delete-btn {
-      background: #ff5252;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-  </style>
+<style>
+body{font-family:Arial;margin:0}
+header{background:#82CF1B;color:white;padding:14px}
+form{padding:16px}
+input,textarea{
+ width:100%; padding:12px;
+ margin-bottom:12px;
+ border-radius:10px;
+ border:1px solid #ccc
+}
+button{
+ background:#82CF1B;
+ color:white; border:none;
+ padding:14px;
+ width:100%;
+ font-size:16px;
+ border-radius:12px;
+ font-weight:bold;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>Publier un produit</h1>
-</header>
+<header><h2>Ajouter un produit</h2></header>
 
-<div class="form-box">
-  <input type="text" id="nom" placeholder="Nom du produit">
-  <input type="number" id="prix" placeholder="Prix (USD)">
-  <textarea id="description" placeholder="Description du produit"></textarea>
-  <input type="url" id="video" placeholder="Lien vidéo (YouTube ou autre)">
-
-  <button class="btn-publish" onclick="publierProduit()">
-    Publier le produit
-  </button>
-</div>
-
-<main id="listeProduits" style="padding:16px"></main>
+<form onsubmit="return publier()">
+ <input id="nom" placeholder="Nom du produit" required>
+ <input id="prix" type="number" placeholder="Prix USD" required>
+ <input id="image" placeholder="Lien image (obligatoire)" required>
+ <input id="video" placeholder="Lien YouTube (obligatoire)" required>
+ <textarea id="description" placeholder="Description" required></textarea>
+ <button>Publier</button>
+</form>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, remove }
-    from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, push }
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, signInAnonymously }
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
-    authDomain: "collibri-buisiness.firebaseapp.com",
-    databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
-    projectId: "collibri-buisiness",
-    appId: "1:812403400254:web:773de4e308a172d614fb6f"
-  };
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const produitsRef = ref(db, "produits");
+const auth = getAuth(app);
+const db = getDatabase(app);
+await signInAnonymously(auth);
 
-  window.publierProduit = () => {
-    const nom = document.getElementById("nom").value;
-    const prix = document.getElementById("prix").value;
-    const description = document.getElementById("description").value;
-    const video = document.getElementById("video").value;
-
-    if (!nom || !prix || !description)
-      return alert("Tous les champs sont obligatoires");
-
-    push(produitsRef, {
-      nom,
-      prix,
-      description,
-      video,
-      date: Date.now()
-    });
-
-    document.querySelectorAll("input, textarea").forEach(e => e.value = "");
-  };
-
-  onValue(produitsRef, snap => {
-    const list = document.getElementById("listeProduits");
-    list.innerHTML = "";
-
-    snap.forEach(p => {
-      const d = p.val();
-      const div = document.createElement("div");
-      div.className = "client-item";
-      div.innerHTML = `
-        <strong>${d.nom}</strong><br>
-        <small>${d.prix} USD</small><br>
-        <p>${d.description}</p>
-        ${d.video ? `<a href="${d.video}" target="_blank">🎥 Voir la vidéo</a>` : ""}
-        <br>
-        <button class="delete-btn" onclick="supprimerProduit('${p.key}')">
-          Supprimer
-        </button>
-      `;
-      list.appendChild(div);
-    });
-  });
-
-  window.supprimerProduit = id => {
-    if (confirm("Supprimer ce produit ?")) {
-      remove(ref(db, "produits/" + id));
-    }
-  };
+window.publier=()=>{
+ push(ref(db,"produits"),{
+  nom:nom.value,
+  prix:prix.value,
+  image:image.value,
+  video:video.value,
+  description:description.value,
+  vendeurId:auth.currentUser.uid,
+  date:Date.now()
+ });
+ location.href="achat.html";
+ return false;
+}
 </script>
 
 </body>
