@@ -1,61 +1,88 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Discussion - Colibri Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Discussion - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+.chat-container{display:flex;flex-direction:column;height:calc(100vh-128px);padding:12px;overflow-y:auto}
+.chat-msg{max-width:70%;margin-bottom:12px;padding:10px;border-radius:12px;position:relative}
+.sent{background:#1E3A8A;color:white;margin-left:auto}
+.received{background:#ccc;margin-right:auto}
+small{font-size:10px;opacity:0.7;display:block;margin-top:4px}
+.chat-input{display:flex;padding:10px;background:white;position:fixed;bottom:60px;width:100%}
+.chat-input input{flex:1;padding:10px;border-radius:20px;border:1px solid #ccc;margin-right:8px}
+.chat-input button{background:#1E3A8A;color:white;border:none;padding:10px 16px;border-radius:50%;cursor:pointer}
+.menu-bas{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
+.menu-bas a{color:#1E3A8A;font-size:22px;text-decoration:none}
+</style>
 </head>
-
 <body>
 
-<header>
-  <h1>Discussion client</h1>
-</header>
+<header>Discussion Client</header>
 
-<main id="chatBox" class="chat-box"></main>
+<div class="chat-container" id="chatBox"></div>
 
 <div class="chat-input">
-  <input type="text" id="messageInput" placeholder="Écrire un message...">
-  <button onclick="sendMessage()">Envoyer</button>
+<input type="text" id="messageInput" placeholder="Écrire un message...">
+<button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
 </div>
 
-<script>
-let messages = JSON.parse(localStorage.getItem("messages")) || [];
+<!-- MENU BAS -->
+<nav class="menu-bas">
+  <a href="index.html"><i class="fas fa-home"></i></a>
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
 
-function sendMessage() {
-  const text = document.getElementById("messageInput").value;
-  if (!text) return;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-  messages.push({
+// Firebase
+const app = initializeApp({
+  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+  authDomain:"collibri-buisiness.firebaseapp.com",
+  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+  projectId:"collibri-buisiness"
+});
+const db = getDatabase(app);
+const chatRef = ref(db,"messages");
+
+const chatBox = document.getElementById("chatBox");
+const messageInput = document.getElementById("messageInput");
+
+// Envoi message
+function sendMessage(){
+  const text = messageInput.value.trim();
+  if(!text) return;
+  push(chatRef,{
     text,
-    time: new Date().toLocaleTimeString()
+    type:"sent",
+    timestamp:Date.now()
   });
-
-  localStorage.setItem("messages", JSON.stringify(messages));
-  document.getElementById("messageInput").value = "";
-  loadMessages();
+  messageInput.value="";
 }
 
-function loadMessages() {
-  const box = document.getElementById("chatBox");
-  box.innerHTML = "";
-
-  messages.forEach(m => {
+// Chargement en temps réel
+onValue(chatRef,(snapshot)=>{
+  chatBox.innerHTML="";
+  const data = snapshot.val();
+  if(!data) return;
+  Object.values(data).forEach(msg=>{
     const div = document.createElement("div");
-    div.className = "chat-msg";
-    div.innerHTML = `
-      <div class="msg">${m.text}</div>
-      <small>${m.time}</small>
-    `;
-    box.appendChild(div);
+    div.className="chat-msg "+msg.type;
+    div.innerHTML=`${msg.text}<small>${new Date(msg.timestamp).toLocaleTimeString()}</small>`;
+    chatBox.appendChild(div);
   });
-
-  box.scrollTop = box.scrollHeight;
-}
-
-loadMessages();
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
 </script>
 
 </body>
