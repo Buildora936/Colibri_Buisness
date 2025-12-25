@@ -2,75 +2,136 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Publier - Colibri Business</title>
+<title>Vente - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-body{font-family:Arial;margin:0}
-header{background:#82CF1B;color:white;padding:14px}
-form{padding:16px}
-input,textarea{
- width:100%; padding:12px;
- margin-bottom:12px;
- border-radius:10px;
- border:1px solid #ccc
-}
-button{
- background:#82CF1B;
- color:white; border:none;
- padding:14px;
- width:100%;
- font-size:16px;
- border-radius:12px;
- font-weight:bold;
-}
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+.pub-banner{padding:12px;background:#93c5fd;text-align:center;margin:12px;border-radius:12px}
+.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
+.menu-bas a{color:white;font-size:20px;text-decoration:none}
+.container{padding:12px; display:grid; grid-template-columns:1fr; gap:12px}
+.card{background:white;border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.card h3{margin:0;font-size:20px;color:#1E3A8A}
+.card .price{color:#1E40AF;font-weight:bold;margin:6px 0;font-size:16px}
+.card img{width:100%;border-radius:12px;margin-top:8px}
+.card iframe{width:100%;height:180px;border-radius:12px;margin-top:8px}
+.card .heart{font-size:28px;cursor:pointer;float:right}
+.card .heart.red{color:red}
+.card small{opacity:0.7}
+textarea,input{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-top:8px}
+button{padding:10px 14px;margin-top:8px;border:none;border-radius:10px;cursor:pointer;font-weight:bold}
+.btn-primary{background:#1E3A8A;color:white}
+.btn-danger{background:red;color:white}
 </style>
 </head>
 
 <body>
 
-<header><h2>Ajouter un produit</h2></header>
+<header>Vente - Publier vos produits</header>
+<div class="pub-banner">ESPACE PUBLICITAIRE</div>
 
-<form onsubmit="return publier()">
- <input id="nom" placeholder="Nom du produit" required>
- <input id="prix" type="number" placeholder="Prix USD" required>
- <input id="image" placeholder="Lien image (obligatoire)" required>
- <input id="video" placeholder="Lien YouTube (obligatoire)" required>
- <textarea id="description" placeholder="Description" required></textarea>
- <button>Publier</button>
-</form>
+<div class="container">
+  <h3>Ajouter un produit</h3>
+  <input type="text" id="nomProduit" placeholder="Nom du produit">
+  <input type="number" id="prixProduit" placeholder="Prix (USD)">
+  <input type="text" id="descProduit" placeholder="Description">
+  <input type="text" id="imageProduit" placeholder="URL image">
+  <input type="text" id="videoProduit" placeholder="URL vidéo (YouTube embed)">
+  <button class="btn-primary" onclick="saveVente()">Publier</button>
+</div>
+
+<div class="container" id="venteList"></div>
+
+<nav class="menu-bas">
+ <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+ <a href="commandes.html"><i class="fas fa-box"></i></a>
+ <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+ <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+ <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, push }
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-import { getAuth, signInAnonymously }
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getDatabase, ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
+// Init Firebase
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
  authDomain:"collibri-buisiness.firebaseapp.com",
  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
  projectId:"collibri-buisiness"
 });
-
-const auth = getAuth(app);
 const db = getDatabase(app);
-await signInAnonymously(auth);
 
-window.publier=()=>{
- push(ref(db,"produits"),{
-  nom:nom.value,
-  prix:prix.value,
-  image:image.value,
-  video:video.value,
-  description:description.value,
-  vendeurId:auth.currentUser.uid,
-  date:Date.now()
+const currentUser = "vendeur1"; // simulateur utilisateur connecté
+const venteList = document.getElementById("venteList");
+
+// Ajouter un produit
+async function saveVente(){
+ const nom = document.getElementById("nomProduit").value.trim();
+ const prix = document.getElementById("prixProduit").value.trim();
+ const desc = document.getElementById("descProduit").value.trim();
+ const image = document.getElementById("imageProduit").value.trim();
+ const video = document.getElementById("videoProduit").value.trim();
+
+ if(!nom || !prix || !desc || !image || !video){alert("Tous les champs sont requis"); return;}
+
+ const newRef = push(ref(db,"produits"));
+ await set(newRef,{
+   nom, prix, description: desc, image, video, vendeurId: currentUser
  });
- location.href="achat.html";
- return false;
+
+ document.getElementById("nomProduit").value="";
+ document.getElementById("prixProduit").value="";
+ document.getElementById("descProduit").value="";
+ document.getElementById("imageProduit").value="";
+ document.getElementById("videoProduit").value="";
+ loadVentes();
 }
+
+// Charger tous les produits
+async function loadVentes(){
+ venteList.innerHTML="";
+ const snap = await get(ref(db,"produits"));
+ if(!snap.exists()) return;
+ Object.entries(snap.val()).forEach(([id,p])=>{
+   const div = document.createElement("div");
+   div.className="card";
+   div.innerHTML=`
+     <span class="heart" id="fav-${id}">🤍</span>
+     <h3>${p.nom}</h3>
+     <div class="price">${p.prix} USD</div>
+     <p>${p.description}</p>
+     <img src="${p.image}" alt="image produit">
+     <iframe src="${p.video}" frameborder="0" allowfullscreen></iframe>
+     ${p.vendeurId===currentUser?`<button class="btn-danger" id="suppr-${id}">Supprimer</button>`:""}
+   `;
+   venteList.appendChild(div);
+
+   const favBtn = document.getElementById(`fav-${id}`);
+   favBtn.onclick = async ()=>{
+     const favRef = ref(db,`favoris/${currentUser}/${id}`);
+     const s = await get(favRef);
+     s.exists()?remove(favRef):set(favRef,true);
+     favBtn.classList.toggle("red");
+   };
+
+   const supBtn = document.getElementById(`suppr-${id}`);
+   if(supBtn){
+     supBtn.onclick = async ()=>{
+       if(confirm("Supprimer ce produit ?")){
+         await remove(ref(db,`produits/${id}`));
+         loadVentes();
+       }
+     }
+   }
+ });
+}
+
+loadVentes();
 </script>
 
 </body>
