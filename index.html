@@ -38,7 +38,6 @@ main{padding:12px}
 <body>
 
 <header>Clients</header>
-
 <main id="clientList"></main>
 
 <div id="editModal">
@@ -54,7 +53,7 @@ main{padding:12px}
   </div>
 </div>
 
-<button class="fab" onclick="goAddClient()">
+<button class="fab" onclick="window.location.href='addclient.html'">
   <i class="fas fa-plus"></i>
 </button>
 
@@ -67,148 +66,103 @@ main{padding:12px}
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<script>
-let currentId = null;
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-function goAddClient() {
-  window.location.href = "addclient.html";
-}
+<script>
+const firebaseConfig = {
+  apiKey: "TON_API_KEY",
+  authDomain: "TON_PROJET.firebaseapp.com",
+  projectId: "TON_PROJET",
+  storageBucket: "TON_PROJET.appspot.com",
+  messagingSenderId: "TON_SENDER_ID",
+  appId: "TON_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentId = null;
 
 function loadClients() {
   const list = document.getElementById("clientList");
   list.innerHTML = "";
 
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  db.collection("clients").onSnapshot(snapshot=>{
+    if(snapshot.empty){
+      list.innerHTML = "<p class='empty'>Aucun client</p>";
+      return;
+    }
+    snapshot.forEach(doc=>{
+      const c = doc.data();
+      c.id = doc.id;
 
-  if(clients.length === 0){
-    list.innerHTML = "<p class='empty'>Aucun client</p>";
-    return;
-  }
+      const div = document.createElement("div");
+      div.className="client-item";
 
-  clients.forEach(c=>{
-    const div = document.createElement("div");
-    div.className="client-item";
-
-    div.innerHTML = `
-      <div class="client-info">
-        <img src="${c.avatar || 'https://via.placeholder.com/40'}">
-        <div class="client-details">
-          <strong>${c.nom}</strong>
-          <small>${c.tel}</small>
-          ${c.blocked ? '<span class="blocked-label">Bloqué</span>' : ''}
+      div.innerHTML = `
+        <div class="client-info">
+          <img src="${c.avatar || 'https://via.placeholder.com/40'}">
+          <div class="client-details">
+            <strong>${c.nom}</strong>
+            <small>${c.tel}</small>
+            ${c.blocked ? '<span class="blocked-label">Bloqué</span>' : ''}
+          </div>
         </div>
-      </div>
-      <i class="fas fa-ellipsis-vertical"></i>
-    `;
+        <i class="fas fa-ellipsis-vertical"></i>
+      `;
 
-    // ouvrir modal au clic sur (…)
-    div.querySelector("i").onclick = e => {
-      e.stopPropagation();
-      openEdit(c.id);
-    }
-
-    // ouvrir discussion au clic sur le client
-    div.querySelector(".client-info").onclick = () => {
-      if(c.blocked){
-        if(confirm("Ce contact est bloqué. Débloquer et ouvrir la discussion ?")){
-          c.blocked = false;
-          saveClientStatus(c);
-          openChat(c);
-        }
-      } else {
-        openChat(c);
+      div.querySelector("i").onclick = e=>{
+        e.stopPropagation();
+        openEdit(c);
       }
-    }
 
-    list.appendChild(div);
+      div.querySelector(".client-info").onclick = ()=>{
+        if(c.blocked){
+          if(confirm("Ce contact est bloqué. Débloquer et ouvrir la discussion ?")){
+            db.collection("clients").doc(c.id).update({blocked:false});
+            openChat(c);
+          }
+        } else openChat(c);
+      }
+
+      list.appendChild(div);
+    });
   });
 }
 
-function saveClientStatus(c){
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  let i = clients.findIndex(x=>x.id===c.id);
-  if(i!==-1){
-    clients[i] = c;
-    localStorage.setItem("clients", JSON.stringify(clients));
-    loadClients();
-  }
-}
-
-function openChat(c){
-  alert(`Ouverture de la discussion avec ${c.nom}`);
-}
-
-function openEdit(id){
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  let c = clients.find(x=>x.id===id);
-  if(!c) return;
-
-  currentId = id;
+function openEdit(c){
+  currentId = c.id;
   document.getElementById("editNom").value = c.nom;
   document.getElementById("editTel").value = c.tel;
-
-  document.querySelector(".unblockBtn").style.display = c.blocked ? "block" : "none";
-  document.querySelector(".blockBtn").style.display = c.blocked ? "none" : "block";
-
+  document.querySelector(".unblockBtn").style.display = c.blocked ? "block":"none";
+  document.querySelector(".blockBtn").style.display = c.blocked ? "none":"block";
   document.getElementById("editModal").style.display = "flex";
 }
 
-function closeEdit(){
-  document.getElementById("editModal").style.display = "none";
-  currentId = null;
-}
+function closeEdit(){ document.getElementById("editModal").style.display="none"; currentId=null }
 
 function saveEdit(){
-  if(currentId === null) return;
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  let i = clients.findIndex(x=>x.id===currentId);
-  if(i===-1) return;
-
-  clients[i].nom = document.getElementById("editNom").value.trim();
-  clients[i].tel = document.getElementById("editTel").value.trim();
-  localStorage.setItem("clients", JSON.stringify(clients));
+  if(!currentId) return;
+  const nom = document.getElementById("editNom").value.trim();
+  const tel = document.getElementById("editTel").value.trim();
+  db.collection("clients").doc(currentId).update({nom,tel});
   closeEdit();
-  loadClients();
 }
 
 function deleteClient(){
-  if(currentId === null) return;
-  if(!confirm("Supprimer ce contact ?")) return;
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  clients = clients.filter(x=>x.id!==currentId);
-  localStorage.setItem("clients", JSON.stringify(clients));
+  if(!currentId) return;
+  if(confirm("Supprimer ce contact ?")) db.collection("clients").doc(currentId).delete();
   closeEdit();
-  loadClients();
 }
 
-function blockClient(){
-  if(currentId === null) return;
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  let i = clients.findIndex(x=>x.id===currentId);
-  if(i===-1) return;
+function blockClient(){ if(currentId) db.collection("clients").doc(currentId).update({blocked:true}); closeEdit(); }
 
-  clients[i].blocked = true;
-  localStorage.setItem("clients", JSON.stringify(clients));
-  alert("Contact bloqué !");
-  closeEdit();
-  loadClients();
-}
+function unblockClient(){ if(currentId) db.collection("clients").doc(currentId).update({blocked:false}); closeEdit(); }
 
-function unblockClient(){
-  if(currentId === null) return;
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-  let i = clients.findIndex(x=>x.id===currentId);
-  if(i===-1) return;
+function openChat(c){ window.location.href=`chat.html?id=${c.id}` }
 
-  clients[i].blocked = false;
-  localStorage.setItem("clients", JSON.stringify(clients));
-  alert("Contact débloqué !");
-  closeEdit();
-  loadClients();
-}
-
-document.addEventListener("DOMContentLoaded", loadClients);
+loadClients();
 </script>
-
 </body>
 </html>
