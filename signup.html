@@ -2,73 +2,89 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Créer un compte - Colibri Business</title>
+<title>Inscription - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{background:#1E3A8A;color:white;padding:16px;text-align:center;font-size:22px;font-weight:bold}
+.container{padding:16px}
+.card{background:white;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+input,select{width:100%;padding:12px;margin-top:10px;border-radius:12px;border:1px solid #ccc}
+button{width:100%;padding:12px;margin-top:14px;border:none;border-radius:12px;background:#1E3A8A;color:white;font-size:16px;font-weight:bold}
+.hidden{display:none}
+.switch{text-align:center;margin-top:12px;color:#1E3A8A;font-weight:bold}
+</style>
 </head>
 
 <body>
 
-<h2>Créer un compte</h2>
+<header>Créer un compte</header>
 
-<input id="email" type="email" placeholder="Email">
-<input id="password" type="password" placeholder="Mot de passe">
+<div class="container">
+  <div class="card">
 
-<select id="type">
-  <option value="">Type de compte</option>
-  <option value="client">Client</option>
-  <option value="professionnel">Professionnel</option>
-</select>
+    <input id="nom" placeholder="Nom complet">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Mot de passe">
 
-<button onclick="signup()">Créer mon compte</button>
+    <select id="type" onchange="togglePro()">
+      <option value="client">Compte Client</option>
+      <option value="professionnel">Compte Professionnel</option>
+    </select>
 
-<p>Déjà un compte ? <a href="login.html">Connexion</a></p>
+    <div id="proFields" class="hidden">
+      <input id="vendeurNom" placeholder="Nom du vendeur / business">
+      <input id="vendeurLogo" placeholder="URL du logo">
+    </div>
+
+    <button onclick="signup()">Créer le compte</button>
+    <div class="switch" onclick="location.href='login.html'">Déjà un compte ?</div>
+
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
-  authDomain: "collibri-buisiness.firebaseapp.com",
-  projectId: "collibri-buisiness",
-  databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
-  storageBucket: "collibri-buisiness.appspot.com",
-  appId: "1:812403400254:web:773de4e308a172d614fb6f"
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+window.togglePro = ()=>{
+  proFields.classList.toggle("hidden", type.value!=="professionnel");
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getDatabase();
+window.signup = async ()=>{
+ if(!nom.value || !email.value || !password.value){
+   alert("Tous les champs sont obligatoires"); return;
+ }
+ if(type.value==="professionnel" && (!vendeurNom.value || !vendeurLogo.value)){
+   alert("Infos vendeur requises"); return;
+ }
 
-window.signup = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const type = document.getElementById("type").value;
-
-  if (!email || !password || !type) {
-    alert("Tous les champs sont obligatoires");
-    return;
-  }
-
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(userCredential => {
-      const uid = userCredential.user.uid;
-
-      return set(ref(db, "users/" + uid), {
-        email: email,
-        type: type,
-        createdAt: Date.now()
-      });
-    })
-    .then(() => {
-      alert("Compte créé avec succès !");
-      window.location.href = "login.html";
-    })
-    .catch(error => {
-      alert(error.message);
-    });
+ try{
+   const cred = await createUserWithEmailAndPassword(auth,email.value,password.value);
+   await set(ref(db,"users/"+cred.user.uid),{
+     nom:nom.value,
+     email:email.value,
+     type:type.value,
+     vendeurNom:vendeurNom.value||"",
+     vendeurLogo:vendeurLogo.value||""
+   });
+   window.location.href="index.html";
+ }catch(e){
+   alert("Erreur inscription");
+ }
 };
 </script>
 
