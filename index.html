@@ -5,15 +5,140 @@
   <title>Colibri Business</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #e5ddd5;
+    }
+    header {
+      padding: 16px;
+      background: #075e54;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    #clientList {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .client-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 12px 16px;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+    .client-item:hover {
+      background: #f1f1f1;
+    }
+    .client-item div {
+      display: flex;
+      flex-direction: column;
+    }
+    .client-item strong {
+      font-size: 16px;
+      color: #075e54;
+    }
+    .client-item small {
+      color: #555;
+      font-size: 12px;
+    }
+    .client-item i {
+      color: #999;
+      font-size: 18px;
+    }
+    .fab {
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      background: #25d366;
+      color: white;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 100;
+    }
+    .menu-bas {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #128c7e;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    .menu-bas a {
+      color: white;
+      font-size: 20px;
+      text-decoration: none;
+    }
+
+    /* Modale édition client */
+    #editModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+    }
+    #editModal .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #editModal input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #editModal button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #saveBtn {
+      background: #25d366;
+      color: white;
+    }
+    #cancelBtn {
+      background: #ddd;
+      color: black;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
-  <h1>Clients</h1>
+  Clients
 </header>
 
 <main id="clientList"></main>
@@ -31,14 +156,25 @@
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
+<!-- Modale pour éditer client -->
+<div id="editModal">
+  <div class="modal-content">
+    <input type="text" id="editNom" placeholder="Nom du client">
+    <input type="text" id="editTel" placeholder="Téléphone">
+    <button id="saveBtn">Enregistrer</button>
+    <button id="cancelBtn">Annuler</button>
+  </div>
+</div>
 
 <script>
 let currentId = null;
 
+// Ajouter client
 function goAddClient() {
   window.location.href = "addclient.html";
 }
 
+// Charger clients
 function loadClients() {
   const list = document.getElementById("clientList");
   list.innerHTML = "";
@@ -46,7 +182,7 @@ function loadClients() {
   let clients = JSON.parse(localStorage.getItem("clients")) || [];
 
   if (clients.length === 0) {
-    list.innerHTML = "<p>Aucun client</p>";
+    list.innerHTML = "<p style='text-align:center;margin-top:20px;color:#555;'>Aucun client</p>";
     return;
   }
 
@@ -54,10 +190,9 @@ function loadClients() {
     const div = document.createElement("div");
     div.className = "client-item";
     div.onclick = () => openEdit(c.id);
-
     div.innerHTML = `
       <div>
-        <strong>${c.nom}</strong><br>
+        <strong>${c.nom}</strong>
         <small>${c.tel}</small>
       </div>
       <i class="fas fa-ellipsis-vertical"></i>
@@ -66,33 +201,39 @@ function loadClients() {
   });
 }
 
+// Ouvrir modale édition
 function openEdit(id) {
   let clients = JSON.parse(localStorage.getItem("clients")) || [];
   let c = clients.find(x => x.id === id);
   if (!c) return;
 
   currentId = id;
-  editNom.value = c.nom;
-  editTel.value = c.tel;
-  editModal.style.display = "flex";
+  document.getElementById("editNom").value = c.nom;
+  document.getElementById("editTel").value = c.tel;
+  document.getElementById("editModal").style.display = "flex";
 }
 
+// Fermer modale
 function closeEdit() {
-  editModal.style.display = "none";
+  document.getElementById("editModal").style.display = "none";
 }
 
+// Sauvegarder modifications
 function saveEdit() {
   let clients = JSON.parse(localStorage.getItem("clients")) || [];
   let i = clients.findIndex(x => x.id === currentId);
   if (i === -1) return;
 
-  clients[i].nom = editNom.value;
-  clients[i].tel = editTel.value;
+  clients[i].nom = document.getElementById("editNom").value;
+  clients[i].tel = document.getElementById("editTel").value;
   localStorage.setItem("clients", JSON.stringify(clients));
   closeEdit();
   loadClients();
 }
 
+// Boutons modale
+document.getElementById("saveBtn").onclick = saveEdit;
+document.getElementById("cancelBtn").onclick = closeEdit;
 
 document.addEventListener("DOMContentLoaded", loadClients);
 </script>
