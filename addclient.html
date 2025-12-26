@@ -10,56 +10,12 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff;display:flex;flex-direction:column;height:100vh}
-
-/* HEADER */
-header{
-  background:#1E3A8A;
-  color:white;
-  padding:16px;
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-}
-
-/* FORM */
-main{
-  flex:1;
-  padding:20px;
-}
-input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:16px;
-  outline:none;
-}
-button{
-  width:100%;
-  padding:12px;
-  background:#1E3A8A;
-  color:white;
-  font-size:16px;
-  font-weight:bold;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-button:disabled{
-  background:#999;
-}
-
-/* PREVIEW AVATAR */
-#avatarPreview{
-  display:block;
-  margin:0 auto 12px;
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  object-fit:cover;
-  background:#fff;
-}
+header{background:#1E3A8A;color:white;padding:16px;text-align:center;font-size:22px;font-weight:bold}
+main{flex:1;padding:20px}
+input{width:100%;padding:12px;margin-bottom:12px;border-radius:10px;border:1px solid #ccc;font-size:16px;outline:none}
+button{width:100%;padding:12px;background:#1E3A8A;color:white;font-size:16px;font-weight:bold;border:none;border-radius:10px;cursor:pointer}
+button:disabled{background:#999}
+#avatarPreview{display:block;margin:0 auto 12px;width:80px;height:80px;border-radius:50%;object-fit:cover;background:#fff}
 </style>
 </head>
 
@@ -77,34 +33,54 @@ button:disabled{
   <button onclick="addClient()">Ajouter</button>
 </main>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth();
+
+let currentUser = null;
+onAuthStateChanged(auth, user => {
+  if(!user){
+    window.location.href="login.html";
+  } else {
+    currentUser = user.uid;
+  }
+});
+
 function previewAvatar(event){
   const preview=document.getElementById("avatarPreview");
   preview.src=URL.createObjectURL(event.target.files[0]);
 }
 
-function addClient(){
+async function addClient(){
+  if(!currentUser) return alert("Utilisateur non connecté");
+
   const nom=document.getElementById("nom").value.trim();
   const tel=document.getElementById("tel").value.trim();
   const avatar=document.getElementById("avatarPreview").src;
 
-  if(!nom||!tel){
-    alert("Remplissez tous les champs !");
-    return;
-  }
+  if(!nom||!tel) return alert("Remplissez tous les champs !");
 
-  let clients=JSON.parse(localStorage.getItem("clients"))||[];
-  const newClient={
-    id:Date.now().toString(),
+  await push(ref(db,"clients/"+currentUser),{
     nom,
     tel,
     avatar,
     blocked:false
-  };
-  clients.push(newClient);
-  localStorage.setItem("clients",JSON.stringify(clients));
+  });
+
   alert("Client ajouté !");
-  window.location.href="index.html"; // revenir à la liste
+  window.location.href="index.html";
 }
 </script>
 
