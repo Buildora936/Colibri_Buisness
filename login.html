@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Connexion - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2>Connexion</h2>
+
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mot de passe">
+
+<button onclick="login()">Se connecter</button>
+
+<p>Pas encore de compte ? <a href="signup.html">Créer un compte</a></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+  authDomain: "collibri-buisiness.firebaseapp.com",
+  projectId: "collibri-buisiness",
+  databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
+  appId: "1:812403400254:web:773de4e308a172d614fb6f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getDatabase();
+
+window.login = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(userCredential => {
+      const uid = userCredential.user.uid;
+
+      return get(ref(db, "users/" + uid));
+    })
+    .then(snapshot => {
+      const user = snapshot.val();
+
+      if (user.type === "professionnel") {
+        window.location.href = "vente.html";
+      } else {
+        window.location.href = "achat.html";
+      }
+    })
+    .catch(error => {
+      alert("Erreur : " + error.message);
+    });
+};
+</script>
+
+</body>
+</html>
