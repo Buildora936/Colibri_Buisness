@@ -33,9 +33,13 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 
 <div class="search-bar">
  <input id="search" placeholder="Rechercher un produit">
- <select id="filter">
-   <option value="">Tous les vendeurs</option>
- </select>
+<select id="sort">
+  <option value="">Trier</option>
+  <option value="prix-asc">Prix ↑</option>
+  <option value="prix-desc">Prix ↓</option>
+  <option value="new">Nouveautés</option>
+</select>
+ 
 </div>
 
 <div class="container" id="achatList"></div>
@@ -83,10 +87,19 @@ async function loadProduits(){
 function renderProduits(){
  const search = searchInput.value.toLowerCase();
  const filter = filterSelect.value;
+ const sort = document.getElementById("sort").value;
+
+ let list = produits.filter(p=>{
+   return p.nom.toLowerCase().includes(search) &&
+          (!filter || p.vendeurId===filter);
+ });
+
+ if(sort==="prix-asc") list.sort((a,b)=>a.prix-b.prix);
+ if(sort==="prix-desc") list.sort((a,b)=>b.prix-a.prix);
+ if(sort==="new") list.sort((a,b)=>b.createdAt-a.createdAt);
+
  achatList.innerHTML="";
- produits.filter(p=>{
-   return (p.nom.toLowerCase().includes(search)) && (!filter || p.vendeurId===filter);
- }).forEach(p=>{
+ list.forEach(p=>{
    const div=document.createElement("div");
    div.className="card";
    div.innerHTML=`
@@ -97,7 +110,8 @@ function renderProduits(){
      <small>${p.description.slice(0,60)}...</small>
    `;
    achatList.appendChild(div);
-
+ });
+}
    const heart = div.querySelector(".heart");
    const uid = "public";
    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
