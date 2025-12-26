@@ -4,59 +4,51 @@
 <meta charset="UTF-8">
 <title>Connexion - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{background:#1E3A8A;color:white;padding:16px;text-align:center;font-size:22px;font-weight:bold}
+.container{padding:16px}
+.card{background:white;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+input{width:100%;padding:12px;margin-top:10px;border-radius:12px;border:1px solid #ccc}
+button{width:100%;padding:12px;margin-top:14px;border:none;border-radius:12px;background:#1E3A8A;color:white;font-size:16px;font-weight:bold}
+.switch{text-align:center;margin-top:12px;color:#1E3A8A;font-weight:bold}
+</style>
 </head>
 
 <body>
 
-<h2>Connexion</h2>
+<header>Connexion</header>
 
-<input id="email" type="email" placeholder="Email">
-<input id="password" type="password" placeholder="Mot de passe">
-
-<button onclick="login()">Se connecter</button>
-
-<p>Pas encore de compte ? <a href="signup.html">Créer un compte</a></p>
+<div class="container">
+  <div class="card">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Mot de passe">
+    <button onclick="login()">Se connecter</button>
+    <div class="switch" onclick="location.href='signup.html'">Créer un compte</div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
-  authDomain: "collibri-buisiness.firebaseapp.com",
-  projectId: "collibri-buisiness",
-  databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
-  appId: "1:812403400254:web:773de4e308a172d614fb6f"
-};
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ projectId:"collibri-buisiness"
+});
+const auth = getAuth(app);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getDatabase();
-
-window.login = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  signInWithEmailAndPassword(auth, email, password)
-    .then(userCredential => {
-      const uid = userCredential.user.uid;
-
-      return get(ref(db, "users/" + uid));
-    })
-    .then(snapshot => {
-      const user = snapshot.val();
-
-      if (user.type === "professionnel") {
-        window.location.href = "vente.html";
-      } else {
-        window.location.href = "achat.html";
-      }
-    })
-    .catch(error => {
-      alert("Erreur : " + error.message);
-    });
+window.login = async ()=>{
+ try{
+   await signInWithEmailAndPassword(auth,email.value,password.value);
+   window.location.href="index.html";
+ }catch(e){
+   alert("Connexion échouée");
+ }
 };
 </script>
 
