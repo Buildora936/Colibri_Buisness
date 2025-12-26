@@ -2,49 +2,56 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Ajouter un client - Colibri Business</title>
+<title>Ajouter Client</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-body{margin:0;font-family:Arial;background:#e6f0ff;padding:16px}
-h2{color:#1E3A8A;text-align:center;margin-bottom:20px}
-input{width:100%;padding:10px;margin-bottom:12px;border-radius:10px;border:1px solid #ccc;box-sizing:border-box}
-button{background:#1E3A8A;color:white;padding:10px;border:none;border-radius:10px;width:100%;font-weight:bold;cursor:pointer}
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+main{padding:12px;display:flex;flex-direction:column;gap:12px}
+input{padding:12px;border-radius:10px;border:1px solid #ccc;width:100%}
+button{padding:12px;border:none;border-radius:10px;background:#1E3A8A;color:white;font-weight:bold;cursor:pointer}
 </style>
 </head>
-
 <body>
 
-<h2>Ajouter un client</h2>
-
-<input type="text" id="nomClient" placeholder="Nom">
-<input type="text" id="telClient" placeholder="Téléphone">
-<input type="url" id="avatarClient" placeholder="Lien avatar (facultatif)">
-
+<header>Ajouter Client</header>
+<main>
+<input type="text" id="nom" placeholder="Nom">
+<input type="text" id="tel" placeholder="Téléphone">
+<input type="text" id="avatar" placeholder="URL Avatar (optionnel)">
 <button onclick="addClient()">Ajouter</button>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+const firebaseConfig = {
+  apiKey: "TON_API_KEY",
+  authDomain: "TON_PROJET.firebaseapp.com",
+  projectId: "TON_PROJET",
+  storageBucket: "TON_PROJET.appspot.com",
+  messagingSenderId: "TON_SENDER_ID",
+  appId: "TON_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 function addClient(){
-  const nom = document.getElementById("nomClient").value.trim();
-  const tel = document.getElementById("telClient").value.trim();
-  const avatar = document.getElementById("avatarClient").value.trim();
+  const nom = document.getElementById("nom").value.trim();
+  const tel = document.getElementById("tel").value.trim();
+  const avatar = document.getElementById("avatar").value.trim();
 
-  if(!nom || !tel){
-    alert("Nom et téléphone obligatoires");
-    return;
-  }
+  if(!nom||!tel){ alert("Nom et téléphone sont requis"); return; }
 
-  const clients = JSON.parse(localStorage.getItem("clients")) || [];
-  const id = Date.now().toString();
-
-  clients.push({id, nom, tel, avatar, blocked:false});
-  localStorage.setItem("clients", JSON.stringify(clients));
-  alert("Client ajouté !");
-  window.location.href = "index.html";
+  db.collection("clients").add({nom,tel,avatar,blocked:false}).then(()=>{
+    alert("Client ajouté !");
+    window.location.href="index.html";
+  });
 }
 </script>
-
 </body>
 </html>
