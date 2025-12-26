@@ -69,7 +69,7 @@ main{padding:12px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -86,12 +86,9 @@ const auth = getAuth();
 let currentUser = null;
 let currentEditId = null;
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth,user=>{
   if(!user) window.location.href="login.html";
-  else{
-    currentUser = user.uid;
-    loadClients();
-  }
+  else currentUser=user.uid;
 });
 
 function goAddClient(){ window.location.href="addclient.html"; }
@@ -143,9 +140,7 @@ function loadClients(){
   });
 }
 
-function openChat(c){
-  alert(`Ouverture de la discussion avec ${c.nom}`);
-}
+function openChat(c){ alert(`Ouverture de la discussion avec ${c.nom}`); }
 
 function openEdit(id,c){
   currentEditId = id;
