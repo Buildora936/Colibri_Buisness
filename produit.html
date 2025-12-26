@@ -27,7 +27,6 @@ button{background:#1E3A8A;color:white;border:none;border-radius:10px;padding:10p
 small{opacity:.7}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -49,7 +48,7 @@ small{opacity:.7}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, get, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, get, push, remove, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 const app = initializeApp({
@@ -66,7 +65,6 @@ const params = new URLSearchParams(location.search);
 const produitId = params.get("id");
 
 let currentUser = null;
-
 onAuthStateChanged(auth,u=> currentUser=u ? u.uid : null);
 
 async function loadProduit(){
@@ -79,11 +77,7 @@ async function loadProduit(){
  if(vendeurSnap.exists()){
    const v = vendeurSnap.val();
    if(v.vendeurNom && v.vendeurLogo){
-     vendeurHTML = `
-       <div class="vendor">
-         <img src="${v.vendeurLogo}">
-         <strong>${v.vendeurNom}</strong>
-       </div>`;
+     vendeurHTML = `<div class="vendor"><img src="${v.vendeurLogo}"><strong>${v.vendeurNom}</strong></div>`;
    }
  }
 
@@ -97,14 +91,13 @@ async function loadProduit(){
    <iframe src="${p.video}" allowfullscreen></iframe>
  `;
 
- // Favori
  if(currentUser){
    const favRef = ref(db,`favoris/${currentUser}/${produitId}`);
    const favSnap = await get(favRef);
    if(favSnap.exists()) document.getElementById("fav").classList.add("red");
    document.getElementById("fav").onclick = async ()=>{
      const s = await get(favRef);
-     s.exists()?remove(favRef):set(favRef,true);
+     s.exists()?remove(favRef):push(favRef,true);
      document.getElementById("fav").classList.toggle("red");
    };
  }
@@ -117,11 +110,7 @@ function loadAvis(){
    if(!snap.exists()) return;
    Object.values(snap.val()).reverse().forEach(a=>{
      const d = new Date(a.date).toLocaleString();
-     list.innerHTML += `
-       <div class="comment">
-         <small>${d}</small>
-         <div>${a.texte}</div>
-       </div>`;
+     list.innerHTML += `<div class="comment"><small>${d}</small><div>${a.texte}</div></div>`;
    });
  });
 }
@@ -130,12 +119,7 @@ async function publierAvis(){
  if(!currentUser){ alert("Connectez-vous"); return; }
  const texte = avisTexte.value.trim();
  if(!texte) return;
-
- await push(ref(db,"avis/"+produitId),{
-   uid: currentUser,
-   texte,
-   date: Date.now()
- });
+ await push(ref(db,"avis/"+produitId),{ uid: currentUser, texte, date: Date.now() });
  avisTexte.value="";
 }
 
