@@ -7,141 +7,140 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-body{margin:0;font-family:Arial;background:#e6f0ff} /* bleu clair */
-header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
-.pub-banner{padding:12px;background:#93c5fd;text-align:center;margin:12px;border-radius:12px}
-.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
-.menu-bas a{color:white;font-size:20px;text-decoration:none}
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:14px;background:#1E3A8A;color:white;display:flex;align-items:center;gap:12px}
+header i{font-size:20px;cursor:pointer}
 .container{padding:12px}
-.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
-.card h3{margin:0;font-size:22px;color:#1E3A8A}
-.card .price{color:#1E40AF;font-weight:bold;margin:6px 0;font-size:18px}
-.card .heart{font-size:28px;cursor:pointer;float:right}
-.card .heart.red{color:red}
-.card small{opacity:0.7}
-textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-top:8px}
-button{padding:10px 14px;margin-top:8px;border:none;border-radius:10px;cursor:pointer;font-weight:bold}
-.btn-primary{background:#1E3A8A;color:white}
-.btn-danger{background:red;color:white}
-.comment{background:#f0f4ff;padding:8px;margin:6px 0;border-radius:8px}
+.card{background:white;border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+h2{margin:6px 0;color:#1E3A8A}
+.price{color:#1E40AF;font-weight:bold;margin:6px 0}
+img{width:100%;border-radius:12px}
+iframe{width:100%;height:200px;border-radius:12px;margin-top:8px}
+.heart{font-size:26px;cursor:pointer;float:right}
+.heart.red{color:red}
+.vendor{display:flex;align-items:center;gap:8px;margin-top:10px}
+.vendor img{width:40px;height:40px;border-radius:50%}
+hr{border:none;border-top:1px solid #ddd;margin:12px 0}
+textarea,input{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
+button{background:#1E3A8A;color:white;border:none;border-radius:10px;padding:10px;margin-top:8px;font-weight:bold}
+.comment{background:#f1f5ff;border-radius:10px;padding:8px;margin-top:8px}
+small{opacity:.7}
 </style>
 </head>
 
 <body>
 
-<header>Produit</header>
-<div class="pub-banner">ESPACE PUBLICITAIRE</div>
-
-<div class="container" id="produitContainer"></div>
-
-<div class="container">
-<h3>Ajouter un commentaire</h3>
-<textarea id="commentaireInput" placeholder="Écrire votre avis..."></textarea>
-<button class="btn-primary" onclick="addComment()">Publier</button>
-</div>
+<header>
+  <i class="fas fa-arrow-left" onclick="history.back()"></i>
+  <strong>Produit</strong>
+</header>
 
 <div class="container">
-<h3>Commentaires / Avis</h3>
-<div id="commentairesList"></div>
-</div>
+  <div class="card" id="productCard">Chargement...</div>
 
-<nav class="menu-bas">
- <a href="index.html"><i class="fas fa-home"></i></a>
- <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
- <a href="commandes.html"><i class="fas fa-box"></i></a>
- <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
- <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
- <a href="chaines.html"><i class="fas fa-rss"></i></a>
-</nav>
+  <hr>
+
+  <h3>Avis & Commentaires</h3>
+  <textarea id="avisTexte" placeholder="Écrire un commentaire..."></textarea>
+  <button onclick="publierAvis()">Publier</button>
+
+  <div id="avisList"></div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, get, set, remove, push, child } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, get, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-// Init Firebase
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
  authDomain:"collibri-buisiness.firebaseapp.com",
  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
  projectId:"collibri-buisiness"
 });
+
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// Récupération id produit depuis URL
-const urlParams = new URLSearchParams(window.location.search);
-const produitId = urlParams.get('id');
+const params = new URLSearchParams(location.search);
+const produitId = params.get("id");
 
-const produitContainer = document.getElementById("produitContainer");
-const commentairesList = document.getElementById("commentairesList");
-const commentaireInput = document.getElementById("commentaireInput");
+let currentUser = null;
 
-let produitData = null;
-const currentUser = "vendeur1"; // Simule vendeur connecté (à remplacer par auth)
+onAuthStateChanged(auth,u=> currentUser=u ? u.uid : null);
 
-// Charger produit
 async function loadProduit(){
- const snap = await get(ref(db,`produits/${produitId}`));
- if(!snap.exists()){produitContainer.innerHTML="<p>Produit introuvable</p>";return;}
- produitData = snap.val();
- renderProduit();
- loadCommentaires();
-}
+ const snap = await get(ref(db,"produits/"+produitId));
+ if(!snap.exists()) return;
+ const p = snap.val();
 
-function renderProduit(){
- produitContainer.innerHTML=`
-   <div class="card">
-     <span class="heart" id="favBtn">🤍</span>
-     <h3>${produitData.nom}</h3>
-     <div class="price">${produitData.prix} USD</div>
-     <p>${produitData.description}</p>
-     <iframe width="100%" height="220" src="${produitData.video}" frameborder="0" allowfullscreen style="border-radius:12px;margin-top:8px"></iframe>
-     ${produitData.vendeurId===currentUser?'<button class="btn-danger" id="supprimerBtn">Supprimer</button>': ''}
-   </div>
- `;
- const favBtn = document.getElementById("favBtn");
- const favRef = ref(db,`favoris/${currentUser}/${produitId}`);
- get(favRef).then(s=>{if(s.exists()) favBtn.classList.add("red");});
- favBtn.onclick = async()=>{
-   const s = await get(favRef);
-   s.exists()?remove(favRef):set(favRef,true);
-   favBtn.classList.toggle("red");
- };
-
- const supBtn = document.getElementById("supprimerBtn");
- if(supBtn){
-   supBtn.onclick = async()=>{
-     if(confirm("Supprimer ce produit ?")){
-       await remove(ref(db,`produits/${produitId}`));
-       alert("Produit supprimé");
-       window.location.href="achat.html";
-     }
+ let vendeurHTML = "";
+ const vendeurSnap = await get(ref(db,"users/"+p.vendeurId));
+ if(vendeurSnap.exists()){
+   const v = vendeurSnap.val();
+   if(v.vendeurNom && v.vendeurLogo){
+     vendeurHTML = `
+       <div class="vendor">
+         <img src="${v.vendeurLogo}">
+         <strong>${v.vendeurNom}</strong>
+       </div>`;
    }
+ }
+
+ document.getElementById("productCard").innerHTML = `
+   <span class="heart" id="fav">🤍</span>
+   <img src="${p.image}">
+   <h2>${p.nom}</h2>
+   <div class="price">${p.prix} USD</div>
+   <p>${p.description}</p>
+   ${vendeurHTML}
+   <iframe src="${p.video}" allowfullscreen></iframe>
+ `;
+
+ // Favori
+ if(currentUser){
+   const favRef = ref(db,`favoris/${currentUser}/${produitId}`);
+   const favSnap = await get(favRef);
+   if(favSnap.exists()) document.getElementById("fav").classList.add("red");
+   document.getElementById("fav").onclick = async ()=>{
+     const s = await get(favRef);
+     s.exists()?remove(favRef):set(favRef,true);
+     document.getElementById("fav").classList.toggle("red");
+   };
  }
 }
 
-// Commentaires
-async function loadCommentaires(){
- commentairesList.innerHTML="";
- const snap = await get(ref(db,`commentaires/${produitId}`));
- if(!snap.exists()) return;
- Object.values(snap.val()).forEach(c=>{
-   const div = document.createElement("div");
-   div.className="comment";
-   div.innerHTML=`<strong>${c.user}</strong>: ${c.text}`;
-   commentairesList.appendChild(div);
+function loadAvis(){
+ onValue(ref(db,"avis/"+produitId), snap=>{
+   const list = document.getElementById("avisList");
+   list.innerHTML="";
+   if(!snap.exists()) return;
+   Object.values(snap.val()).reverse().forEach(a=>{
+     const d = new Date(a.date).toLocaleString();
+     list.innerHTML += `
+       <div class="comment">
+         <small>${d}</small>
+         <div>${a.texte}</div>
+       </div>`;
+   });
  });
 }
 
-async function addComment(){
- const text = commentaireInput.value.trim();
- if(!text) return;
- const newRef = push(ref(db,`commentaires/${produitId}`));
- await set(newRef,{user:currentUser,text});
- commentaireInput.value="";
- loadCommentaires();
+async function publierAvis(){
+ if(!currentUser){ alert("Connectez-vous"); return; }
+ const texte = avisTexte.value.trim();
+ if(!texte) return;
+
+ await push(ref(db,"avis/"+produitId),{
+   uid: currentUser,
+   texte,
+   date: Date.now()
+ });
+ avisTexte.value="";
 }
 
 loadProduit();
+loadAvis();
 </script>
 
 </body>
