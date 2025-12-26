@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Créer un compte - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2>Créer un compte</h2>
+
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mot de passe">
+
+<select id="type">
+  <option value="">Type de compte</option>
+  <option value="client">Client</option>
+  <option value="professionnel">Professionnel</option>
+</select>
+
+<button onclick="signup()">Créer mon compte</button>
+
+<p>Déjà un compte ? <a href="login.html">Connexion</a></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+  authDomain: "collibri-buisiness.firebaseapp.com",
+  projectId: "collibri-buisiness",
+  databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
+  storageBucket: "collibri-buisiness.appspot.com",
+  appId: "1:812403400254:web:773de4e308a172d614fb6f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getDatabase();
+
+window.signup = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const type = document.getElementById("type").value;
+
+  if (!email || !password || !type) {
+    alert("Tous les champs sont obligatoires");
+    return;
+  }
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(userCredential => {
+      const uid = userCredential.user.uid;
+
+      return set(ref(db, "users/" + uid), {
+        email: email,
+        type: type,
+        createdAt: Date.now()
+      });
+    })
+    .then(() => {
+      alert("Compte créé avec succès !");
+      window.location.href = "login.html";
+    })
+    .catch(error => {
+      alert(error.message);
+    });
+};
+</script>
+
+</body>
+</html>
