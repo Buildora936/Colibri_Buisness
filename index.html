@@ -7,13 +7,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <style>
-/* 🔵 DESIGN BLEU — INCHANGÉ */
 body{margin:0;font-family:Arial;background:#e6f0ff}
 header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
 main{padding:12px}
@@ -30,10 +24,10 @@ main{padding:12px}
 #editModal .modal-content{background:white;padding:16px;border-radius:12px;width:90%;max-width:400px;display:flex;flex-direction:column;gap:12px}
 #editModal input{padding:10px;border-radius:10px;border:1px solid #ccc}
 #editModal button{padding:10px;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
-.saveBtn{background:#1E3A8A;color:white}
-.deleteBtn{background:red;color:white}
-.blockBtn{background:#555;color:white}
-.unblockBtn{background:green;color:white}
+#editModal .saveBtn{background:#1E3A8A;color:white}
+#editModal .deleteBtn{background:red;color:white}
+#editModal .blockBtn{background:#555;color:white}
+#editModal .unblockBtn{background:green;color:white}
 
 .menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0}
 .menu-bas a{color:white;font-size:20px;text-decoration:none}
@@ -44,14 +38,14 @@ main{padding:12px}
 <body>
 
 <header>Clients</header>
+
 <main id="clientList"></main>
 
-<!-- MODAL -->
 <div id="editModal">
   <div class="modal-content">
-    <h3>Contact</h3>
-    <input id="editNom">
-    <input id="editTel">
+    <h3>Éditer contact</h3>
+    <input type="text" id="editNom" placeholder="Nom">
+    <input type="text" id="editTel" placeholder="Téléphone">
     <button class="saveBtn" onclick="saveEdit()">Enregistrer</button>
     <button class="deleteBtn" onclick="deleteClient()">Supprimer</button>
     <button class="blockBtn" onclick="blockClient()">Bloquer</button>
@@ -60,7 +54,7 @@ main{padding:12px}
   </div>
 </div>
 
-<button class="fab" onclick="location.href='addclient.html'">
+<button class="fab" onclick="goAddClient()">
   <i class="fas fa-plus"></i>
 </button>
 
@@ -73,94 +67,124 @@ main{padding:12px}
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<script>
-/* 🔐 FIREBASE CONFIG */
-firebase.initializeApp({
-  apiKey: "TA_CLE",
-  authDomain: "TON_DOMAINE",
-  databaseURL: "TON_DB_URL",
-  projectId: "TON_ID"
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth();
+
+let currentUser = null;
+let currentEditId = null;
+
+onAuthStateChanged(auth, user => {
+  if(!user) window.location.href="login.html";
+  else{
+    currentUser = user.uid;
+    loadClients();
+  }
 });
 
-const auth = firebase.auth();
-const db = firebase.database();
-let currentUser, currentId;
+function goAddClient(){ window.location.href="addclient.html"; }
 
-/* Sécurité */
-auth.onAuthStateChanged(user=>{
-  if(!user) location.href="login.html";
-  currentUser = user;
-  loadClients();
-});
-
-/* Charger clients */
 function loadClients(){
-  const list=document.getElementById("clientList");
+  const list = document.getElementById("clientList");
   list.innerHTML="";
-  db.ref("clients/"+currentUser.uid).on("value",snap=>{
-    if(!snap.exists()){
-      list.innerHTML="<p class='empty'>Aucun client</p>";
-      return;
-    }
-    snap.forEach(s=>{
-      const c=s.val(); c.id=s.key;
-      const div=document.createElement("div");
+  const clientsRef = ref(db,"clients/"+currentUser);
+
+  onValue(clientsRef,snap=>{
+    list.innerHTML="";
+    if(!snap.exists()) return list.innerHTML="<p class='empty'>Aucun client</p>";
+
+    snap.forEach(cSnap=>{
+      const c = cSnap.val();
+      const id = cSnap.key;
+
+      const div = document.createElement("div");
       div.className="client-item";
-      div.innerHTML=`
+
+      div.innerHTML = `
         <div class="client-info">
-          <img src="${c.avatar||'https://via.placeholder.com/40'}">
+          <img src="${c.avatar || 'https://via.placeholder.com/40'}">
           <div class="client-details">
             <strong>${c.nom}</strong>
             <small>${c.tel}</small>
-            ${c.blocked?'<span class="blocked-label">Bloqué</span>':''}
+            ${c.blocked ? '<span class="blocked-label">Bloqué</span>' : ''}
           </div>
         </div>
-        <i class="fas fa-ellipsis-vertical"></i>`;
-      div.querySelector("i").onclick=e=>{e.stopPropagation();openEdit(c)};
-      div.querySelector(".client-info").onclick=()=>openChat(c);
+        <i class="fas fa-ellipsis-vertical"></i>
+      `;
+
+      div.querySelector("i").onclick = e=>{
+        e.stopPropagation();
+        openEdit(id,c);
+      }
+
+      div.querySelector(".client-info").onclick = ()=>{
+        if(c.blocked){
+          if(confirm("Ce contact est bloqué. Débloquer et ouvrir la discussion ?")){
+            unblockClient(id);
+            openChat(c);
+          }
+        } else openChat(c);
+      }
+
       list.appendChild(div);
     });
   });
 }
 
 function openChat(c){
-  if(c.blocked) return alert("Contact bloqué");
-  location.href="discussion.html?id="+c.id;
+  alert(`Ouverture de la discussion avec ${c.nom}`);
 }
 
-function openEdit(c){
-  currentId=c.id;
-  editNom.value=c.nom;
-  editTel.value=c.tel;
-  document.querySelector(".blockBtn").style.display=c.blocked?"none":"block";
-  document.querySelector(".unblockBtn").style.display=c.blocked?"block":"none";
-  editModal.style.display="flex";
+function openEdit(id,c){
+  currentEditId = id;
+  document.getElementById("editNom").value=c.nom;
+  document.getElementById("editTel").value=c.tel;
+
+  document.querySelector(".unblockBtn").style.display = c.blocked ? "block" : "none";
+  document.querySelector(".blockBtn").style.display = c.blocked ? "none" : "block";
+
+  document.getElementById("editModal").style.display="flex";
 }
 
-function closeEdit(){editModal.style.display="none";}
+function closeEdit(){ document.getElementById("editModal").style.display="none"; currentEditId=null; }
 
-function saveEdit(){
-  db.ref("clients/"+currentUser.uid+"/"+currentId).update({
-    nom:editNom.value,
-    tel:editTel.value
-  });
+async function saveEdit(){
+  if(!currentEditId) return;
+  const nom=document.getElementById("editNom").value.trim();
+  const tel=document.getElementById("editTel").value.trim();
+  await update(ref(db,`clients/${currentUser}/${currentEditId}`), { nom, tel });
   closeEdit();
 }
 
-function deleteClient(){
-  if(confirm("Supprimer ?")){
-    db.ref("clients/"+currentUser.uid+"/"+currentId).remove();
-    closeEdit();
-  }
-}
-
-function blockClient(){
-  db.ref("clients/"+currentUser.uid+"/"+currentId+"/blocked").set(true);
+async function deleteClient(){
+  if(!currentEditId) return;
+  if(!confirm("Supprimer ce contact ?")) return;
+  await remove(ref(db,`clients/${currentUser}/${currentEditId}`));
   closeEdit();
 }
 
-function unblockClient(){
-  db.ref("clients/"+currentUser.uid+"/"+currentId+"/blocked").set(false);
+async function blockClient(){
+  if(!currentEditId) return;
+  await update(ref(db,`clients/${currentUser}/${currentEditId}`), { blocked:true });
+  alert("Contact bloqué !");
+  closeEdit();
+}
+
+async function unblockClient(id){
+  await update(ref(db,`clients/${currentUser}/${id}`), { blocked:false });
+  alert("Contact débloqué !");
   closeEdit();
 }
 </script>
