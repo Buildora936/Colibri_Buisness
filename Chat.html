@@ -2,148 +2,183 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Chat - Colibri Business</title>
+<title>Discussion</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
-body{margin:0;font-family:Arial;background:#e6f0ff}
-header{display:flex;align-items:center;padding:12px;background:#1E3A8A;color:white;font-size:20px;font-weight:bold}
-header i{margin-right:16px;cursor:pointer}
-.chat-container{display:flex;flex-direction:column;height:calc(100vh-56px);padding:12px;overflow-y:auto}
-.chat-msg{max-width:70%;margin-bottom:12px;padding:10px;border-radius:12px;position:relative;word-break:break-word}
-.sent{background:#1E3A8A;color:white;margin-left:auto}
-.received{background:#ccc;margin-right:auto;color:black}
-small{font-size:10px;opacity:0.7;display:block;margin-top:4px}
-.favorite{position:absolute;top:4px;right:4px;color:white;cursor:pointer}
-.favorite.red{color:red}
-.delete-msg{position:absolute;top:4px;right:24px;color:white;cursor:pointer;font-size:12px}
-.chat-input{display:flex;padding:10px;background:white;position:fixed;bottom:0;width:100%}
-.chat-input input[type="text"]{flex:1;padding:10px;border-radius:20px;border:1px solid #ccc;margin-right:8px}
-.chat-input input[type="file"]{display:none}
-.chat-input label{margin-right:8px;background:#1E3A8A;color:white;padding:10px 14px;border-radius:50%;cursor:pointer}
-.chat-input button{background:#1E3A8A;color:white;border:none;padding:10px 16px;border-radius:50%;cursor:pointer}
-img,video{max-width:200px;border-radius:8px;margin-top:4px}
-.notification{position:fixed;top:56px;right:20px;background:red;color:white;padding:6px 12px;border-radius:20px;display:none}
+body{margin:0;font-family:Arial;background:#e6f0ff;height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+header{
+  background:#1E3A8A;
+  color:white;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+header img{width:40px;height:40px;border-radius:50%}
+header i{font-size:20px;cursor:pointer}
+
+/* MESSAGES */
+#messages{
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.msg{
+  max-width:70%;
+  padding:10px 12px;
+  border-radius:14px;
+  font-size:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.me{
+  align-self:flex-end;
+  background:#1E40AF;
+  color:white;
+  border-bottom-right-radius:4px;
+}
+.other{
+  align-self:flex-start;
+  background:white;
+  color:black;
+  border-bottom-left-radius:4px;
+}
+.time{
+  font-size:10px;
+  opacity:0.6;
+  margin-top:4px;
+}
+
+/* INPUT */
+footer{
+  padding:10px;
+  display:flex;
+  gap:8px;
+  background:#dbeafe;
+}
+footer input{
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:none;
+  outline:none;
+}
+footer button{
+  background:#1E3A8A;
+  color:white;
+  border:none;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  font-size:18px;
+  cursor:pointer;
+}
+footer button:disabled{
+  background:#999;
+}
 </style>
 </head>
+
 <body>
 
 <header>
-  <i class="fas fa-arrow-left" onclick="goBack()"></i>
-  Discussion Client
+  <i class="fas fa-arrow-left" onclick="history.back()"></i>
+  <img id="avatar">
+  <strong id="clientName"></strong>
 </header>
 
-<div class="chat-container" id="chatBox"></div>
+<div id="messages"></div>
 
-<div class="notification" id="notif">Nouveau message !</div>
+<footer>
+  <input id="msgInput" placeholder="Message...">
+  <button id="sendBtn" onclick="sendMsg()">
+    <i class="fas fa-paper-plane"></i>
+  </button>
+</footer>
 
-<div class="chat-input">
-  <label for="fileInput"><i class="fas fa-paperclip"></i></label>
-  <input type="file" id="fileInput" accept="image/*,video/*">
-  <input type="text" id="messageInput" placeholder="Écrire un message...">
-  <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-
-// Firebase
-const app = initializeApp({
-  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
-  authDomain:"collibri-buisiness.firebaseapp.com",
-  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
-  projectId:"collibri-buisiness"
-});
-const db = getDatabase(app);
-const chatRef = ref(db,"messages");
-
-const chatBox = document.getElementById("chatBox");
-const messageInput = document.getElementById("messageInput");
-const fileInput = document.getElementById("fileInput");
-const notif = document.getElementById("notif");
-
-function goBack(){window.history.back()}
-
-// Envoi message texte ou fichier
-function sendMessage(fileData=null){
-  let text = messageInput.value.trim();
-  if(!text && !fileData) return;
-
-  const msg = {
-    text: text || "",
-    file:fileData || null, // {url,type}
-    type:"sent",
-    timestamp:Date.now(),
-    favorite:false,
-    seen:false,
-    userId:"vendeur1"
-  };
-  push(chatRef,msg);
-  messageInput.value="";
-}
-
-// Gestion upload fichier
-fileInput.addEventListener("change", ()=>{
-  const file = fileInput.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ()=>sendMessage({url:reader.result,type:file.type});
-  reader.readAsDataURL(file);
-  fileInput.value="";
+<script>
+/* 🔐 Firebase */
+firebase.initializeApp({
+  apiKey: "TA_CLE",
+  authDomain: "TON_DOMAINE",
+  databaseURL: "TON_DB_URL",
+  projectId: "TON_ID"
 });
 
-// Toggle favoris
-function toggleFavorite(id,current){
-  const favRef = ref(db,"messages/"+id);
-  update(favRef,{favorite:!current});
-}
+const auth=firebase.auth();
+const db=firebase.database();
 
-// Supprimer message
-function deleteMessage(id,msgUserId){
-  if(msgUserId!=="vendeur1") return alert("Vous ne pouvez supprimer que vos messages");
-  const msgRef = ref(db,"messages/"+id);
-  remove(msgRef);
-}
+let userId, clientId, blocked=false;
 
-// Chargement messages en temps réel
-let firstLoad = true;
-onValue(chatRef,(snapshot)=>{
-  chatBox.innerHTML="";
-  const data = snapshot.val();
-  if(!data) return;
+/* récupérer id client */
+const params=new URLSearchParams(location.search);
+clientId=params.get("id");
 
-  Object.entries(data).forEach(([id,msg])=>{
-    const div = document.createElement("div");
-    div.className="chat-msg "+msg.type;
+/* sécurité */
+auth.onAuthStateChanged(user=>{
+  if(!user) return location.href="login.html";
+  userId=user.uid;
+  loadClient();
+  loadMessages();
+});
 
-    let content = msg.text;
-    if(msg.file){
-      if(msg.file.type.startsWith("image/")){
-        content += `<br><img src="${msg.file.url}" alt="image">`;
-      }else if(msg.file.type.startsWith("video/")){
-        content += `<br><video src="${msg.file.url}" controls></video>`;
-      }
-    }
-
-    div.innerHTML=content+
-      `<small>${new Date(msg.timestamp).toLocaleTimeString()}</small>
-      <i class="fas fa-heart favorite ${msg.favorite?"red":""}" onclick="toggleFavorite('${id}',${msg.favorite})"></i>
-      <i class="fas fa-trash delete-msg" onclick="deleteMessage('${id}','${msg.userId}')"></i>`;
-
-    chatBox.appendChild(div);
+/* charger infos client */
+function loadClient(){
+  db.ref(`clients/${userId}/${clientId}`).once("value",snap=>{
+    if(!snap.exists()) return;
+    const c=snap.val();
+    blocked=!!c.blocked;
+    document.getElementById("clientName").textContent=c.nom;
+    document.getElementById("avatar").src=c.avatar||"https://via.placeholder.com/40";
+    document.getElementById("sendBtn").disabled=blocked;
+    document.getElementById("msgInput").disabled=blocked;
+    if(blocked) document.getElementById("msgInput").placeholder="Contact bloqué";
   });
+}
 
-  chatBox.scrollTop = chatBox.scrollHeight;
+/* charger messages */
+function loadMessages(){
+  const box=document.getElementById("messages");
+  db.ref(`chats/${userId}/${clientId}/messages`)
+    .on("child_added",snap=>{
+      const m=snap.val();
+      const div=document.createElement("div");
+      div.className="msg "+(m.sender===userId?"me":"other");
+      div.innerHTML=`
+        ${m.text}
+        <div class="time">${new Date(m.time).toLocaleTimeString()}</div>
+      `;
+      box.appendChild(div);
+      box.scrollTop=box.scrollHeight;
+    });
+}
 
-  // Notification
-  if(!firstLoad){
-    notif.style.display="block";
-    setTimeout(()=>{notif.style.display="none"},2000);
-  }
-  firstLoad=false;
-});
-
+/* envoyer message */
+function sendMsg(){
+  const input=document.getElementById("msgInput");
+  if(!input.value.trim()) return;
+  db.ref(`chats/${userId}/${clientId}/messages`).push({
+    text:input.value,
+    sender:userId,
+    time:Date.now()
+  });
+  input.value="";
+}
 </script>
+
 </body>
 </html>
