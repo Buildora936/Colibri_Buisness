@@ -1,69 +1,110 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Ajouter client</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Ajouter Client</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff;display:flex;flex-direction:column;height:100vh}
+
+/* HEADER */
+header{
+  background:#1E3A8A;
+  color:white;
+  padding:16px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+}
+
+/* FORM */
+main{
+  flex:1;
+  padding:20px;
+}
+input{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:16px;
+  outline:none;
+}
+button{
+  width:100%;
+  padding:12px;
+  background:#1E3A8A;
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+button:disabled{
+  background:#999;
+}
+
+/* PREVIEW AVATAR */
+#avatarPreview{
+  display:block;
+  margin:0 auto 12px;
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#fff;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>Ajouter client</h1>
-</header>
+<header>Ajouter Client</header>
 
 <main>
-  <div class="card">
-    <label>Nom du client</label>
-    <input id="nom" placeholder="Nom complet">
+  <input type="text" id="nom" placeholder="Nom">
+  <input type="text" id="tel" placeholder="Téléphone">
+  
+  <input type="file" id="avatar" accept="image/*" onchange="previewAvatar(event)">
+  <img id="avatarPreview" src="https://via.placeholder.com/80" alt="Avatar">
 
-    <label>Téléphone</label>
-    <input id="tel" placeholder="+509...">
-
-    <button class="btn-primary" onclick="saveClient()">Enregistrer</button>
-  </div>
+  <button onclick="addClient()">Ajouter</button>
 </main>
 
-<button class="fab" onclick="goBack()">
-  <i class="fas fa-arrow-left"></i>
-</button>
-
-<nav class="menu-bas">
-  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
-  <a href="commandes.html"><i class="fas fa-box"></i></a>
-  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
-  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
-  <a href="chaines.html"><i class="fas fa-rss"></i></a>
-</nav>
-
 <script>
-function saveClient() {
-  const nom = document.getElementById("nom").value.trim();
-  const tel = document.getElementById("tel").value.trim();
+function previewAvatar(event){
+  const preview=document.getElementById("avatarPreview");
+  preview.src=URL.createObjectURL(event.target.files[0]);
+}
 
-  if (!nom || !tel) {
-    alert("Champs requis");
+function addClient(){
+  const nom=document.getElementById("nom").value.trim();
+  const tel=document.getElementById("tel").value.trim();
+  const avatar=document.getElementById("avatarPreview").src;
+
+  if(!nom||!tel){
+    alert("Remplissez tous les champs !");
     return;
   }
 
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-
-  clients.push({
-    id: Date.now(),
+  let clients=JSON.parse(localStorage.getItem("clients"))||[];
+  const newClient={
+    id:Date.now().toString(),
     nom,
-    tel
-  });
-
-  localStorage.setItem("clients", JSON.stringify(clients));
-  window.location.href = "index.html";
-}
-
-function goBack() {
-  window.location.href = "index.html";
+    tel,
+    avatar,
+    blocked:false
+  };
+  clients.push(newClient);
+  localStorage.setItem("clients",JSON.stringify(clients));
+  alert("Client ajouté !");
+  window.location.href="index.html"; // revenir à la liste
 }
 </script>
 
