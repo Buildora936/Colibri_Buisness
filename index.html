@@ -1,59 +1,74 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Colibri Business</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Colibri Business</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<style>
-body{margin:0;font-family:Arial;background:#e6f0ff}
-header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
-main{padding:12px}
-.client-item{background:white;padding:12px;margin-bottom:8px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
-.client-info{display:flex;align-items:center;gap:12px}
-.client-info img{width:40px;height:40px;border-radius:50%;object-fit:cover}
-.client-details{display:flex;flex-direction:column}
-.client-item i{font-size:18px;color:#1E3A8A;cursor:pointer}
-.blocked-label{color:red;font-size:12px;font-weight:bold}
-.empty{text-align:center;opacity:0.6;margin-top:40px}
+  <style>
+    body{margin:0;font-family:Arial;background:#e5ddd5}
+    header{padding:16px;background:#075e54;color:white;font-size:22px;font-weight:bold;text-align:center;position:sticky;top:0;z-index:100}
+    #clientList{padding:0;margin:0;list-style:none}
+    
+    .client-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:white;
+      padding:12px 16px;
+      border-bottom:1px solid #ddd;
+    }
 
-/* Modal */
-#editModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:100}
-#editModal .modal-content{background:white;padding:16px;border-radius:12px;width:90%;max-width:400px;display:flex;flex-direction:column;gap:12px}
-#editModal input{padding:10px;border-radius:10px;border:1px solid #ccc}
-#editModal button{padding:10px;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
-#editModal .saveBtn{background:#1E3A8A;color:white}
-#editModal .deleteBtn{background:red;color:white}
-#editModal .blockBtn{background:#555;color:white}
-#editModal .unblockBtn{background:green;color:white}
+    .client-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
 
-.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0}
-.menu-bas a{color:white;font-size:20px;text-decoration:none}
-.fab{position:fixed;bottom:70px;right:16px;background:#1E3A8A;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-</style>
+    .avatar{
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      background:#ccc;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-weight:bold;
+      font-size:18px;
+      flex-shrink:0;
+    }
+
+    .client-info strong{font-size:16px;color:#075e54}
+    .client-info small{color:#555;font-size:12px}
+
+    .client-item i{color:#999;font-size:18px;cursor:pointer}
+
+    .fab{position:fixed;bottom:80px;right:16px;background:#25d366;color:white;width:56px;height:56px;border-radius:50%;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:100}
+    .menu-bas{position:fixed;bottom:0;width:100%;background:#128c7e;display:flex;justify-content:space-around;padding:10px 0}
+    .menu-bas a{color:white;font-size:20px;text-decoration:none}
+
+    /* Modale édition client */
+    #editModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:200}
+    #editModal .modal-content{background:white;padding:20px;border-radius:12px;width:90%;max-width:400px;display:flex;flex-direction:column;gap:12px}
+    #editModal input{padding:10px;border-radius:8px;border:1px solid #ccc;width:100%;box-sizing:border-box}
+    #editModal button{padding:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
+    #saveBtn{background:#25d366;color:white}
+    #cancelBtn{background:#ddd;color:black}
+  </style>
 </head>
 
 <body>
 
-<header>Clients</header>
+<header>
+  Clients
+</header>
+
 <main id="clientList"></main>
 
-<div id="editModal">
-  <div class="modal-content">
-    <h3>Éditer contact</h3>
-    <input type="text" id="editNom" placeholder="Nom">
-    <input type="text" id="editTel" placeholder="Téléphone">
-    <button class="saveBtn" onclick="saveEdit()">Enregistrer</button>
-    <button class="deleteBtn" onclick="deleteClient()">Supprimer</button>
-    <button class="blockBtn" onclick="blockClient()">Bloquer</button>
-    <button class="unblockBtn" onclick="unblockClient()">Débloquer</button>
-    <button onclick="closeEdit()">Annuler</button>
-  </div>
-</div>
-
-<button class="fab" onclick="window.location.href='addclient.html'">
+<button class="fab" onclick="goAddClient()">
   <i class="fas fa-plus"></i>
 </button>
 
@@ -66,103 +81,99 @@ main{padding:12px}
   <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Modale édition client -->
+<div id="editModal">
+  <div class="modal-content">
+    <input type="text" id="editNom" placeholder="Nom du client">
+    <input type="text" id="editTel" placeholder="Téléphone">
+    <button id="saveBtn">Enregistrer</button>
+    <button id="cancelBtn">Annuler</button>
+  </div>
+</div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "TON_API_KEY",
-  authDomain: "TON_PROJET.firebaseapp.com",
-  projectId: "TON_PROJET",
-  storageBucket: "TON_PROJET.appspot.com",
-  messagingSenderId: "TON_SENDER_ID",
-  appId: "TON_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 let currentId = null;
+
+function goAddClient() {
+  window.location.href = "addclient.html";
+}
+
+function getAvatar(name){
+  if(!name) return "?";
+  const parts = name.trim().split(" ");
+  let initials = parts[0].charAt(0).toUpperCase();
+  if(parts.length>1) initials += parts[1].charAt(0).toUpperCase();
+  return initials;
+}
 
 function loadClients() {
   const list = document.getElementById("clientList");
   list.innerHTML = "";
 
-  db.collection("clients").onSnapshot(snapshot=>{
-    if(snapshot.empty){
-      list.innerHTML = "<p class='empty'>Aucun client</p>";
-      return;
-    }
-    snapshot.forEach(doc=>{
-      const c = doc.data();
-      c.id = doc.id;
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
 
-      const div = document.createElement("div");
-      div.className="client-item";
+  if (clients.length === 0) {
+    list.innerHTML = "<p style='text-align:center;margin-top:20px;color:#555;'>Aucun client</p>";
+    return;
+  }
 
-      div.innerHTML = `
+  clients.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "client-item";
+
+    div.innerHTML = `
+      <div class="client-left">
+        <div class="avatar">${getAvatar(c.nom)}</div>
         <div class="client-info">
-          <img src="${c.avatar || 'https://via.placeholder.com/40'}">
-          <div class="client-details">
-            <strong>${c.nom}</strong>
-            <small>${c.tel}</small>
-            ${c.blocked ? '<span class="blocked-label">Bloqué</span>' : ''}
-          </div>
+          <strong>${c.nom}</strong>
+          <small>${c.tel}</small>
         </div>
-        <i class="fas fa-ellipsis-vertical"></i>
-      `;
+      </div>
+      <i class="fas fa-ellipsis-vertical"></i>
+    `;
 
-      div.querySelector("i").onclick = e=>{
-        e.stopPropagation();
-        openEdit(c);
-      }
+    const btn = div.querySelector("i");
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      openEdit(c.id);
+    };
 
-      div.querySelector(".client-info").onclick = ()=>{
-        if(c.blocked){
-          if(confirm("Ce contact est bloqué. Débloquer et ouvrir la discussion ?")){
-            db.collection("clients").doc(c.id).update({blocked:false});
-            openChat(c);
-          }
-        } else openChat(c);
-      }
-
-      list.appendChild(div);
-    });
+    list.appendChild(div);
   });
 }
 
-function openEdit(c){
-  currentId = c.id;
+function openEdit(id) {
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  let c = clients.find(x => x.id === id);
+  if (!c) return;
+
+  currentId = id;
   document.getElementById("editNom").value = c.nom;
   document.getElementById("editTel").value = c.tel;
-  document.querySelector(".unblockBtn").style.display = c.blocked ? "block":"none";
-  document.querySelector(".blockBtn").style.display = c.blocked ? "none":"block";
   document.getElementById("editModal").style.display = "flex";
 }
 
-function closeEdit(){ document.getElementById("editModal").style.display="none"; currentId=null }
-
-function saveEdit(){
-  if(!currentId) return;
-  const nom = document.getElementById("editNom").value.trim();
-  const tel = document.getElementById("editTel").value.trim();
-  db.collection("clients").doc(currentId).update({nom,tel});
-  closeEdit();
+function closeEdit() {
+  document.getElementById("editModal").style.display = "none";
 }
 
-function deleteClient(){
-  if(!currentId) return;
-  if(confirm("Supprimer ce contact ?")) db.collection("clients").doc(currentId).delete();
+function saveEdit() {
+  let clients = JSON.parse(localStorage.getItem("clients")) || [];
+  let i = clients.findIndex(x => x.id === currentId);
+  if (i === -1) return;
+
+  clients[i].nom = document.getElementById("editNom").value;
+  clients[i].tel = document.getElementById("editTel").value;
+  localStorage.setItem("clients", JSON.stringify(clients));
   closeEdit();
+  loadClients();
 }
 
-function blockClient(){ if(currentId) db.collection("clients").doc(currentId).update({blocked:true}); closeEdit(); }
+document.getElementById("saveBtn").onclick = saveEdit;
+document.getElementById("cancelBtn").onclick = closeEdit;
 
-function unblockClient(){ if(currentId) db.collection("clients").doc(currentId).update({blocked:false}); closeEdit(); }
-
-function openChat(c){ window.location.href=`chat.html?id=${c.id}` }
-
-loadClients();
+document.addEventListener("DOMContentLoaded", loadClients);
 </script>
+
 </body>
 </html>
