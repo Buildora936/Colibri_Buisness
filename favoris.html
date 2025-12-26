@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mes Favoris - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:14px;background:#1E3A8A;color:white;display:flex;align-items:center;gap:12px}
+header i{cursor:pointer}
+.container{padding:12px}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.card img{width:100%;border-radius:12px}
+h3{margin:6px 0;color:#1E3A8A}
+.price{color:#1E40AF;font-weight:bold}
+.empty{text-align:center;opacity:.6;margin-top:40px}
+</style>
+</head>
+
+<body>
+
+<header>
+ <i class="fas fa-arrow-left" onclick="history.back()"></i>
+ <strong>Mes Favoris</strong>
+</header>
+
+<div class="container" id="favList"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
+
+const db = getDatabase(app);
+const auth = getAuth(app);
+const list = document.getElementById("favList");
+
+onAuthStateChanged(auth, async user=>{
+ if(!user){ list.innerHTML="<p class='empty'>Connectez-vous</p>"; return; }
+
+ const favSnap = await get(ref(db,"favoris/"+user.uid));
+ if(!favSnap.exists()){ list.innerHTML="<p class='empty'>Aucun favori</p>"; return; }
+
+ for(const pid of Object.keys(favSnap.val())){
+   const pSnap = await get(ref(db,"produits/"+pid));
+   if(!pSnap.exists()) continue;
+   const p = pSnap.val();
+
+   const div=document.createElement("div");
+   div.className="card";
+   div.innerHTML=`
+     <img src="${p.image}" onclick="location.href='produit.html?id=${pid}'">
+     <h3>${p.nom}</h3>
+     <div class="price">${p.prix} USD</div>
+   `;
+   list.appendChild(div);
+ }
+});
+</script>
+
+</body>
+</html>
