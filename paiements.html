@@ -1,167 +1,72 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Paiements - Colibri Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Paiements - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+.container{padding:12px}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.card h3{margin:0;color:#1E3A8A}
+.card .price{font-weight:bold;color:#1E40AF;margin-top:4px}
+.card button{padding:10px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;background:#1E3A8A;color:white;margin-top:8px;width:100%}
+.empty{text-align:center;opacity:0.6;margin-top:40px}
+.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0}
+.menu-bas a{color:white;font-size:20px;text-decoration:none}
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>Paiements</h1>
-</header>
+<header>Paiements</header>
 
-<main id="paiementList"></main>
+<div class="container" id="paiementList"></div>
 
-<!-- Bouton + pour ajouter paiement -->
-<button class="fab" onclick="openAddPaiement()">
-  <i class="fas fa-plus"></i>
-</button>
-
-<!-- MENU BAS -->
 <nav class="menu-bas">
-  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
-  <a href="commandes.html"><i class="fas fa-box"></i></a>
-  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
-  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
-  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+ <a href="index.html"><i class="fas fa-home"></i></a>
+ <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+ <a href="commandes.html"><i class="fas fa-box"></i></a>
+ <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+ <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+ <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<!-- MODAL AJOUT / MODIFICATION PAIEMENT -->
-<div id="paiementModal" class="modal">
-  <div class="modal-content">
-
-    <h2>Paiement</h2>
-
-    <label>Commande</label>
-    <select id="pCommande"></select>
-
-    <label>Montant payé</label>
-    <input id="pMontant" type="number" placeholder="Ex : 1500 HTG">
-
-    <label>Date</label>
-    <input id="pDate" type="date">
-
-    <button class="btn-primary" onclick="savePaiement()">Enregistrer</button>
-    <button class="btn-danger" onclick="deletePaiement()">Supprimer</button>
-    <button class="btn-cancel" onclick="closePaiement()">Annuler</button>
-
-  </div>
-</div>
-
 <script>
-let currentPaiementId = null;
+const paiementList = document.getElementById("paiementList");
 
-/* CHARGEMENT */
-function loadPaiements() {
-  const list = document.getElementById("paiementList");
-  list.innerHTML = "";
+// exemple de données
+let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
 
-  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
-  if (paiements.length === 0) {
-    list.innerHTML = "<p>Aucun paiement</p>";
+function renderPaiements(){
+  paiementList.innerHTML = "";
+  if(paiements.length===0){
+    paiementList.innerHTML = "<p class='empty'>Aucun paiement</p>";
     return;
   }
 
-  paiements.forEach(p => {
+  paiements.forEach(p=>{
     const div = document.createElement("div");
-    div.className = "client-item";
-    div.onclick = () => openEditPaiement(p.id);
-
+    div.className = "card";
     div.innerHTML = `
-      <div>
-        <strong>${p.commande}</strong><br>
-        <small>${p.montant} HTG • ${p.date}</small>
-      </div>
-      <i class="fas fa-pen"></i>
+      <h3>${p.nom}</h3>
+      <div class="price">${p.montant} USD</div>
+      <div>Date : ${p.date}</div>
+      <button onclick="payer('${p.id}')">Payer</button>
     `;
-    list.appendChild(div);
+    paiementList.appendChild(div);
   });
 }
 
-/* MODAL */
-function openAddPaiement() {
-  currentPaiementId = null;
-  loadCommandesPaiement();
-  pMontant.value = "";
-  pDate.valueAsDate = new Date();
-  paiementModal.style.display = "flex";
+function payer(id){
+  alert("Paiement effectué pour l'ID : "+id);
+  // ici tu peux ajouter intégration Stripe ou PayPal
 }
 
-function openEditPaiement(id) {
-  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
-  let p = paiements.find(x => x.id === id);
-  if (!p) return;
-
-  currentPaiementId = id;
-  loadCommandesPaiement();
-  pCommande.value = p.commande;
-  pMontant.value = p.montant;
-  pDate.value = p.date;
-  paiementModal.style.display = "flex";
-}
-
-/* CHARGER COMMANDES */
-function loadCommandesPaiement() {
-  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
-  pCommande.innerHTML = commandes.map(c =>
-    `<option value="${c.id}">${c.client} • ${c.produit} • ${c.qte} × ${c.prix} HTG</option>`
-  ).join("");
-}
-
-/* SAUVEGARDER */
-function savePaiement() {
-  const commandeOption = pCommande.options[pCommande.selectedIndex];
-  const commandeText = commandeOption.text;
-  const montant = pMontant.value;
-  const date = pDate.value;
-
-  if (!montant || !commandeText || !date) {
-    alert("Tous les champs sont obligatoires");
-    return;
-  }
-
-  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
-
-  if (currentPaiementId) {
-    let i = paiements.findIndex(x => x.id === currentPaiementId);
-    paiements[i] = { id: currentPaiementId, commande: commandeText, montant, date };
-  } else {
-    paiements.push({
-      id: Date.now(),
-      commande: commandeText,
-      montant,
-      date
-    });
-  }
-
-  localStorage.setItem("paiements", JSON.stringify(paiements));
-  closePaiement();
-  loadPaiements();
-}
-
-/* SUPPRIMER */
-function deletePaiement() {
-  if (!currentPaiementId) return;
-
-  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
-  paiements = paiements.filter(x => x.id !== currentPaiementId);
-
-  localStorage.setItem("paiements", JSON.stringify(paiements));
-  closePaiement();
-  loadPaiements();
-}
-
-function closePaiement() {
-  paiementModal.style.display = "none";
-}
-
-document.addEventListener("DOMContentLoaded", loadPaiements);
+document.addEventListener("DOMContentLoaded", renderPaiements);
 </script>
 
 </body>
