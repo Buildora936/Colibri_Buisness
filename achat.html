@@ -2,46 +2,123 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Salle d’Achat</title>
+<title>Salle d’Achat - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+.pub-banner{padding:12px;background:#93c5fd;text-align:center;margin:12px;border-radius:12px}
+.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
+.menu-bas a{color:white;font-size:20px;text-decoration:none}
+.container{padding:12px}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.card img{width:100%;border-radius:12px;margin-bottom:8px}
+.card h3{margin:0;font-size:18px;color:#1E3A8A}
+.card .price{color:#1E40AF;font-weight:bold;margin:6px 0}
+.card .heart{font-size:22px;cursor:pointer;align-self:flex-end}
+.card .heart.red{color:red}
+.card small{opacity:0.7}
+.search-bar{display:flex;margin:12px;gap:8px}
+.search-bar input, .search-bar select{flex:1;padding:10px;border-radius:10px;border:1px solid #ccc}
+.fab{position:fixed;bottom:70px;right:16px;background:#1E3A8A;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer}
+</style>
 </head>
 
 <body>
 
-<h2>Salle d’Achat</h2>
+<header>Salle d’Achat</header>
+<div class="pub-banner">ESPACE PUBLICITAIRE</div>
 
-<input id="search" placeholder="Rechercher">
+<div class="search-bar">
+ <input id="search" placeholder="Rechercher un produit">
+ <select id="sort">
+   <option value="">Trier</option>
+   <option value="prix-asc">Prix ↑</option>
+   <option value="prix-desc">Prix ↓</option>
+   <option value="new">Nouveautés</option>
+ </select>
+</div>
 
-<div id="achatList"></div>
+<div class="container" id="achatList"></div>
+
+<div class="fab" onclick="location.href='vente.html'">+</div>
+
+<nav class="menu-bas">
+ <a href="index.html"><i class="fas fa-home"></i></a>
+ <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+ <a href="commandes.html"><i class="fas fa-box"></i></a>
+ <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+ <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+ <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
  projectId:"collibri-buisiness"
 });
 
 const db = getDatabase(app);
-const list=document.getElementById("achatList");
-let produits=[];
+const achatList = document.getElementById("achatList");
+const searchInput = document.getElementById("search");
+const sortSelect = document.getElementById("sort");
 
-async function load(){
- const snap=await get(ref(db,"produits"));
- produits=snap.exists()?Object.values(snap.val()):[];
- render();
+let produits = [];
+
+async function loadProduits(){
+ const snap = await get(ref(db,"produits"));
+ produits = snap.exists() ? Object.entries(snap.val()).map(([id,v]) => ({...v,id})) : [];
+ renderProduits();
 }
 
-function render(){
- list.innerHTML="";
- produits.forEach(p=>{
-   list.innerHTML+=`<p>${p.nom} - ${p.prix} USD</p>`;
+function renderProduits(){
+ const search = searchInput.value.toLowerCase();
+ const sort = sortSelect.value;
+
+ let list = produits.filter(p => p.nom.toLowerCase().includes(search));
+
+ if(sort==="prix-asc") list.sort((a,b)=>a.prix-b.prix);
+ if(sort==="prix-desc") list.sort((a,b)=>b.prix-a.prix);
+ if(sort==="new") list.sort((a,b)=>b.createdAt-a.createdAt);
+
+ achatList.innerHTML="";
+ list.forEach(p=>{
+   const div=document.createElement("div");
+   div.className="card";
+   div.innerHTML=`
+     <span class="heart" id="fav-${p.id}">🤍</span>
+     <img src="${p.image}" onclick="location.href='produit.html?id=${p.id}'">
+     <h3>${p.nom}</h3>
+     <div class="price">${p.prix} USD</div>
+     <small>${p.description.slice(0,60)}...</small>
+   `;
+   achatList.appendChild(div);
+
+   // Gestion cœur favoris
+   const heart = div.querySelector(".heart");
+   const uid = "public"; // pour test, tu peux remplacer par currentUser si connecté
+   const favRef = ref(db, `favoris/${uid}/${p.id}`);
+   get(favRef).then(snap => { if(snap.exists()) heart.classList.add("red"); });
+   heart.onclick = async ()=>{
+     const snap = await get(favRef);
+     snap.exists() ? remove(favRef) : set(favRef,true);
+     heart.classList.toggle("red");
+   };
  });
 }
 
-load();
+searchInput.oninput = renderProduits;
+sortSelect.onchange = renderProduits;
+
+loadProduits();
 </script>
+
 </body>
 </html>
