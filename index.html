@@ -12,8 +12,11 @@ body{margin:0;font-family:Arial;background:#e6f0ff}
 header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
 main{padding:12px}
 .client-item{background:white;padding:12px;margin-bottom:8px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
-.client-item div{display:flex;flex-direction:column}
+.client-info{display:flex;align-items:center;gap:12px}
+.client-info img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.client-details{display:flex;flex-direction:column}
 .client-item i{font-size:18px;color:#1E3A8A;cursor:pointer}
+.blocked-label{color:red;font-size:12px;font-weight:bold}
 .empty{text-align:center;opacity:0.6;margin-top:40px}
 
 /* Modal */
@@ -83,16 +86,19 @@ function loadClients() {
   clients.forEach(c=>{
     const div = document.createElement("div");
     div.className="client-item";
-    
+
     div.innerHTML = `
-      <div>
-        <strong>${c.nom}</strong>
-        <small>${c.tel}</small>
+      <div class="client-info">
+        <img src="${c.avatar || 'https://via.placeholder.com/40'}">
+        <div class="client-details">
+          <strong>${c.nom}</strong>
+          <small>${c.tel}</small>
+          ${c.blocked ? '<span class="blocked-label">Bloqué</span>' : ''}
+        </div>
       </div>
       <i class="fas fa-ellipsis-vertical"></i>
     `;
 
-    // Modal sur les trois points
     div.querySelector("i").onclick = e => {
       e.stopPropagation();
       openEdit(c.id);
@@ -147,7 +153,7 @@ function blockClient(){
   let i = clients.findIndex(x=>x.id===currentId);
   if(i===-1) return;
 
-  clients[i].blocked = true; // marquer comme bloqué
+  clients[i].blocked = true;
   localStorage.setItem("clients", JSON.stringify(clients));
   alert("Contact bloqué !");
   closeEdit();
