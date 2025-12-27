@@ -2,28 +2,28 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Profil Vendeur - Colibri Business</title>
+<title>Mon espace vendeur</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{background:#1E3A8A;color:#fff;padding:16px;text-align:center;font-size:20px}
+.container{padding:12px}
+.card{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px}
+button{padding:8px 12px;border:none;border-radius:8px;background:#1E40AF;color:white}
+</style>
 </head>
+
 <body>
 
-<header>
-  <h1 id="vendeurNom">Profil Vendeur</h1>
-</header>
+<header>Mon espace vendeur</header>
 
-<main id="produitList" style="padding:16px"></main>
-
-<nav class="menu-bas">
-  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
-  <a href="vente.html"><i class="fas fa-plus"></i></a>
-  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
-</nav>
+<div class="container" id="produitsVendeur"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
@@ -31,39 +31,43 @@ const app = initializeApp({
  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
  projectId:"collibri-buisiness"
 });
+
 const db = getDatabase(app);
+const auth = getAuth(app);
+const container = document.getElementById("produitsVendeur");
 
-const params = new URLSearchParams(window.location.search);
-const vendeur = params.get("vendeur") || "Vendeur inconnu";
+let vendeurId = null;
 
-document.getElementById("vendeurNom").innerText = `Profil : ${vendeur}`;
-
-const produitsRef = ref(db,"produits");
-onValue(produitsRef, snap=>{
-  const produitList = document.getElementById("produitList");
-  produitList.innerHTML = "";
-
-  const produits = [];
-  snap.forEach(p=>{
-    const data = p.val();
-    if(data.vendeurNom === vendeur) produits.push(data);
-  });
-
-  produits.reverse().forEach(p=>{
-    const div = document.createElement("div");
-    div.className = "client-item";
-    div.innerHTML = `
-      <img src="${p.image}" style="width:100%;border-radius:12px;margin-bottom:8px">
-      <strong>${p.nom}</strong><br>
-      <small>${p.prix} USD</small>
-    `;
-    produitList.appendChild(div);
-  });
-
-  if(produits.length === 0){
-    produitList.innerHTML = "<p>Aucun produit publié par ce vendeur.</p>";
-  }
+onAuthStateChanged(auth, async user => {
+ if(!user){
+   location.href = "login.html";
+   return;
+ }
+ vendeurId = user.uid;
+ chargerProduits();
 });
+
+async function chargerProduits(){
+ container.innerHTML = "";
+ const snap = await get(ref(db,"produits"));
+ if(!snap.exists()) return;
+
+ Object.entries(snap.val()).forEach(([id, data])=>{
+   if(data.vendeurId !== vendeurId) return;
+
+   const div = document.createElement("div");
+   div.className = "card";
+   div.innerHTML = `
+     <h3>${data.nom}</h3>
+     <p>${data.prix} USD</p>
+     <button>Supprimer</button>
+   `;
+   div.querySelector("button").onclick = () => {
+     remove(ref(db,"produits/"+id)).then(chargerProduits);
+   };
+   container.appendChild(div);
+ });
+}
 </script>
 
 </body>
