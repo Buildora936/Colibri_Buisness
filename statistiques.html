@@ -4,47 +4,74 @@
 <meta charset="UTF-8">
 <title>Statistiques - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{margin:0;font-family:Arial;background:#e6f0ff}
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+.container{padding:12px}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+h3{margin:6px 0;color:#1E3A8A}
+.value{font-weight:bold;color:#1E40AF;font-size:18px}
+.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 6px rgba(0,0,0,0.1)}
+.menu-bas a{color:white;font-size:20px;text-decoration:none}
+</style>
 </head>
 <body>
 
-<header>
-  <h1>Statistiques</h1>
-</header>
+<header>Statistiques</header>
 
-<main id="statsList"></main>
+<div class="container">
+  <div class="card">
+    <h3>Total ventes</h3>
+    <div class="value" id="totalVentes">0</div>
+  </div>
+  <div class="card">
+    <h3>Total produits</h3>
+    <div class="value" id="totalProduits">0</div>
+  </div>
+  <div class="card">
+    <h3>Ventes récentes</h3>
+    <div id="ventesRecentes">Aucune</div>
+  </div>
+</div>
 
 <nav class="menu-bas">
-  <a href="index.html"><i class="fas fa-home"></i></a>
-  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
-  <a href="commandes.html"><i class="fas fa-box"></i></a>
-  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
-  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
-  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+ <a href="index.html"><i class="fas fa-home"></i></a>
+ <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+ <a href="commandes.html"><i class="fas fa-box"></i></a>
+ <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+ <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+ <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
-<script>
-function loadStats() {
-  const list = document.getElementById("statsList");
-  list.innerHTML = "";
-  let ventes = JSON.parse(localStorage.getItem("achats")) || [];
-  if (ventes.length === 0) {
-    list.innerHTML = "<p style='text-align:center;margin-top:20px;'>Aucune statistique</p>";
-    return;
-  }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-  let total = ventes.reduce((sum, v) => sum + (v.prix * v.quantite), 0);
-  let div = document.createElement("div");
-  div.className = "stats-item";
-  div.innerHTML = `
-    <strong>Total des ventes:</strong> ${total} HTG<br>
-    <strong>Nombre de ventes:</strong> ${ventes.length}
-  `;
-  list.appendChild(div);
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
+
+const db = getDatabase(app);
+
+async function loadStats(){
+ const snapProduits = await get(ref(db,"produits"));
+ const produits = snapProduits.exists()?Object.values(snapProduits.val()):[];
+ document.getElementById("totalProduits").innerText = produits.length;
+
+ const snapVentes = await get(ref(db,"ventes"));
+ const ventes = snapVentes.exists()?Object.values(snapVentes.val()):[];
+ document.getElementById("totalVentes").innerText = ventes.length;
+
+ const ventesRec = ventes.slice(-5).map(v=>`<div>${v.nom} - ${v.prix} USD</div>`).join("");
+ document.getElementById("ventesRecentes").innerHTML = ventesRec || "Aucune";
 }
 
-document.addEventListener("DOMContentLoaded", loadStats);
+loadStats();
 </script>
 
 </body>
