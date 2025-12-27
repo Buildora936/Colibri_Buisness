@@ -4,28 +4,16 @@
 <meta charset="UTF-8">
 <title>Commandes - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<style>
-body{margin:0;font-family:Arial;background:#e6f0ff}
-header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
-main{padding:12px;display:flex;flex-direction:column;gap:12px}
-.commande-item{background:white;padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
-button{padding:12px;border:none;border-radius:10px;background:#1E3A8A;color:white;font-weight:bold;cursor:pointer}
-.empty{text-align:center;opacity:0.6;margin-top:40px}
-.fab{position:fixed;bottom:70px;right:16px;background:#1E3A8A;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-.menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0}
-.menu-bas a{color:white;font-size:20px;text-decoration:none}
-</style>
 </head>
-
 <body>
 
-<header>Commandes</header>
-<main id="commandeList"></main>
+<header>
+  <h1>Commandes</h1>
+</header>
 
-<button class="fab" onclick="addCommande()"><i class="fas fa-plus"></i></button>
+<main id="commandeList"></main>
 
 <nav class="menu-bas">
   <a href="index.html"><i class="fas fa-home"></i></a>
@@ -37,39 +25,24 @@ button{padding:12px;border:none;border-radius:10px;background:#1E3A8A;color:whit
 </nav>
 
 <script>
-function loadCommandes(){
+function loadCommandes() {
   const list = document.getElementById("commandeList");
-  const commandes = JSON.parse(localStorage.getItem("commandes")) || [];
-  list.innerHTML="";
-  if(commandes.length===0){
-    list.innerHTML="<p class='empty'>Aucune commande</p>";
+  list.innerHTML = "";
+  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
+  if (commandes.length === 0) {
+    list.innerHTML = "<p style='text-align:center;margin-top:20px;'>Aucune commande</p>";
     return;
   }
-  commandes.forEach((c,i)=>{
-    const div=document.createElement("div");
-    div.className="commande-item";
-    div.innerHTML=`<span>${c.produit} - ${c.quantite} pcs</span>
-                   <i class="fas fa-trash" onclick="deleteCommande(${i})"></i>`;
+  commandes.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "commande-item";
+    div.innerHTML = `
+      <strong>${c.nomProduit}</strong><br>
+      <small>Client: ${c.client} - Qté: ${c.quantite}</small><br>
+      <small>Prix: ${c.prix} HTG</small>
+    `;
     list.appendChild(div);
   });
-}
-
-function addCommande(){
-  const produit = prompt("Produit commandé:");
-  if(!produit) return;
-  const quantite = prompt("Quantité:");
-  if(!quantite) return;
-  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
-  commandes.push({produit,quantite:Number(quantite)});
-  localStorage.setItem("commandes",JSON.stringify(commandes));
-  loadCommandes();
-}
-
-function deleteCommande(index){
-  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
-  commandes.splice(index,1);
-  localStorage.setItem("commandes",JSON.stringify(commandes));
-  loadCommandes();
 }
 
 document.addEventListener("DOMContentLoaded", loadCommandes);
