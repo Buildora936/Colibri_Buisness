@@ -2,87 +2,102 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Discussion</title>
+<title>Messagerie - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-body{margin:0;font-family:Arial;background:#e6f0ff;display:flex;flex-direction:column;height:100vh}
-header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
-#messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.message{padding:10px;border-radius:12px;max-width:70%;word-wrap:break-word}
-.sent{background:#1E3A8A;color:white;align-self:flex-end}
-.received{background:white;color:black;align-self:flex-start}
-#inputArea{display:flex;gap:8px;padding:12px;background:#f0f0f0}
-#inputArea input{flex:1;padding:10px;border-radius:10px;border:1px solid #ccc}
-#inputArea button{padding:10px;border:none;border-radius:10px;background:#1E3A8A;color:white;cursor:pointer}
+body { margin:0; font-family: Arial; background:#e6f0ff; display:flex; flex-direction:column; height:100vh; }
+header { background:#1E3A8A; color:white; padding:16px; font-size:20px; font-weight:bold; text-align:center; position:sticky; top:0; z-index:10; }
+#chatContainer { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.message { max-width:70%; padding:10px 14px; border-radius:12px; }
+.sent { align-self:flex-end; background:#1E40AF; color:white; border-bottom-right-radius:0; }
+.received { align-self:flex-start; background:white; color:#1E3A8A; border-bottom-left-radius:0; border:1px solid #ccc; }
+#messageForm { display:flex; padding:12px; background:white; border-top:1px solid #ccc; gap:8px; }
+#messageInput { flex:1; padding:10px; border-radius:20px; border:1px solid #ccc; }
+#sendBtn { background:#1E3A8A; color:white; border:none; padding:0 16px; border-radius:20px; cursor:pointer; font-weight:bold; }
+.menu-bas { position:fixed; bottom:0; width:100%; background:#1E40AF; display:flex; justify-content:space-around; padding:10px 0; }
+.menu-bas a { color:white; font-size:20px; text-decoration:none; }
 </style>
 </head>
+
 <body>
 
-<header id="chatHeader">Discussion</header>
-<div id="messages"></div>
+<header>Messagerie</header>
 
-<div id="inputArea">
-  <input type="text" id="msgInput" placeholder="Écrire un message...">
-  <button onclick="sendMessage()">Envoyer</button>
-</div>
+<div id="chatContainer"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<form id="messageForm">
+  <input type="text" id="messageInput" placeholder="Écrire un message...">
+  <button type="submit" id="sendBtn">Envoyer</button>
+</form>
 
-<script>
-const firebaseConfig = {
-  apiKey: "TON_API_KEY",
-  authDomain: "TON_PROJET.firebaseapp.com",
-  projectId: "TON_PROJET",
-  storageBucket: "TON_PROJET.appspot.com",
-  messagingSenderId: "TON_SENDER_ID",
-  appId: "TON_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+<nav class="menu-bas">
+  <a href="index.html"><i class="fas fa-home"></i></a>
+  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+  <a href="commandes.html"><i class="fas fa-box"></i></a>
+  <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="chaines.html"><i class="fas fa-rss"></i></a>
+</nav>
 
-const urlParams = new URLSearchParams(window.location.search);
-const clientId = urlParams.get('id');
-const messagesDiv = document.getElementById("messages");
-const msgInput = document.getElementById("msgInput");
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-let clientName = "";
+// Firebase config
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
+const db = getDatabase(app);
+const auth = getAuth(app);
 
-db.collection("clients").doc(clientId).get().then(doc=>{
-  if(doc.exists){
-    clientName = doc.data().nom;
-    document.getElementById("chatHeader").textContent = "Discussion avec "+clientName;
+let currentUser = null;
+const chatContainer = document.getElementById("chatContainer");
+const messageInput = document.getElementById("messageInput");
+const messageForm = document.getElementById("messageForm");
+
+// Vérifier l'utilisateur connecté
+onAuthStateChanged(auth, user => {
+  if(!user){
+    window.location.href="login.html";
+  } else {
+    currentUser = user.uid;
+    loadMessages();
   }
 });
 
-function renderMessages(snapshot){
-  messagesDiv.innerHTML = "";
-  snapshot.forEach(doc=>{
-    const m = doc.data();
-    const div = document.createElement("div");
-    div.className = "message "+(m.sender==="me"?"sent":"received");
-    div.textContent = m.text;
-    messagesDiv.appendChild(div);
+// Charger les messages
+function loadMessages(){
+  const chatRef = ref(db, "messages");
+  onValue(chatRef, snapshot=>{
+    chatContainer.innerHTML = "";
+    if(!snapshot.exists()) return;
+    Object.values(snapshot.val()).forEach(msg=>{
+      const div = document.createElement("div");
+      div.className = "message " + (msg.uid === currentUser ? "sent" : "received");
+      div.textContent = msg.text;
+      chatContainer.appendChild(div);
+    });
+    chatContainer.scrollTop = chatContainer.scrollHeight;
   });
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-db.collection("chats").doc(clientId).collection("messages").orderBy("time")
-.onSnapshot(renderMessages);
-
-function sendMessage(){
-  const text = msgInput.value.trim();
+// Envoyer message
+messageForm.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const text = messageInput.value.trim();
   if(!text) return;
-  db.collection("chats").doc(clientId).collection("messages").add({
-    text,
-    sender:"me",
-    time:firebase.firestore.FieldValue.serverTimestamp()
-  });
-  msgInput.value="";
-}
+  const chatRef = ref(db, "messages");
+  await push(chatRef, { uid: currentUser, text, date: Date.now() });
+  messageInput.value="";
+});
 </script>
+
 </body>
 </html>
