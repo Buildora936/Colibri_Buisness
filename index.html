@@ -10,9 +10,9 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    body { margin:0; font-family: Arial; background:#f0f2f5; }
+    body { margin:0; font-family: Arial; background:#e6f0ff; }
     header {
-      background:#075E54;
+      background:#1E3A8A;
       color:white;
       padding:16px;
       font-size:20px;
@@ -22,19 +22,44 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
-      padding:14px;
+      padding:12px 14px;
       border-bottom:1px solid #ddd;
       background:white;
+      border-radius:12px;
+      margin:6px 12px;
+    }
+    .client-info {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .client-avatar {
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      background:#1E40AF;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+      font-size:18px;
+      flex-shrink:0;
+    }
+    .client-info div {
+      display:flex;
+      flex-direction:column;
     }
     .client-item i {
       cursor:pointer;
       padding:8px;
+      color:#1E3A8A;
     }
     .fab {
       position:fixed;
       bottom:70px;
       right:20px;
-      background:#25D366;
+      background:#1E3A8A;
       color:white;
       width:56px;
       height:56px;
@@ -49,7 +74,7 @@
       position:fixed;
       bottom:0;
       width:100%;
-      background:#075E54;
+      background:#1E40AF;
       display:flex;
       justify-content:space-around;
       padding:10px 0;
@@ -136,7 +161,7 @@ function loadClients() {
   const clients = JSON.parse(localStorage.getItem("clients")) || [];
 
   if (clients.length === 0) {
-    list.innerHTML = "<p style='padding:16px'>Aucun client</p>";
+    list.innerHTML = "<p style='padding:16px;text-align:center;color:#1E40AF'>Aucun client</p>";
     return;
   }
 
@@ -144,10 +169,15 @@ function loadClients() {
     const div = document.createElement("div");
     div.className = "client-item";
 
+    const avatarLetter = c.nom ? c.nom.charAt(0).toUpperCase() : "?";
+
     div.innerHTML = `
-      <div>
-        <strong>${c.nom}</strong><br>
-        <small>${c.tel}</small>
+      <div class="client-info">
+        <div class="client-avatar">${avatarLetter}</div>
+        <div>
+          <strong>${c.nom}</strong>
+          <small>${c.tel}</small>
+        </div>
       </div>
       <i class="fas fa-ellipsis-vertical" onclick="openModal('${c.id}', event)"></i>
     `;
