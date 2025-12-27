@@ -74,13 +74,16 @@ async function loadAnnonces(){
  });
 }
 
+// Publier annonce
 publierBtn.onclick = async ()=>{
  const texte = document.getElementById("texteAnnonce").value.trim();
  const video = document.getElementById("videoAnnonce").value.trim();
  const image = document.getElementById("imageAnnonce").value.trim();
  if(!texte) return alert("Le texte est obligatoire");
  const newRef = push(ref(db,"chaines"));
- await newRef.set({ texte, video, image, date:new Date().toLocaleString(), user:currentUser });
+ await newRef.set({
+   texte, video, image, date:new Date().toLocaleString(), user:currentUser
+ });
  document.getElementById("texteAnnonce").value="";
  document.getElementById("videoAnnonce").value="";
  document.getElementById("imageAnnonce").value="";
