@@ -1,54 +1,19 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Statistiques - Colibri Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<title>Statistiques - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
 
 <header>
   <h1>Statistiques</h1>
 </header>
 
-<main class="stats-container">
-
-  <div class="stat-card">
-    <span>💰 Total ventes</span>
-    <strong id="totalVentes">0 $</strong>
-  </div>
-
-  <div class="stat-card">
-    <span>💸 Total achats</span>
-    <strong id="totalAchats">0 $</strong>
-  </div>
-
-  <div class="stat-card">
-    <span>💳 Paiements reçus</span>
-    <strong id="totalPaiements">0 $</strong>
-  </div>
-
-  <div class="stat-card">
-    <span>📊 Bénéfice</span>
-    <strong id="benefice">0 $</strong>
-  </div>
-
-  <div class="stat-card">
-    <span>📦 Commandes</span>
-    <strong id="totalCommandes">0</strong>
-  </div>
-
-  <div class="stat-card">
-    <span>👥 Clients</span>
-    <strong id="totalClients">0</strong>
-  </div>
-
-</main>
+<main id="statsList"></main>
 
 <nav class="menu-bas">
   <a href="index.html"><i class="fas fa-home"></i></a>
@@ -60,36 +25,26 @@
 </nav>
 
 <script>
-function calcStats() {
+function loadStats() {
+  const list = document.getElementById("statsList");
+  list.innerHTML = "";
+  let ventes = JSON.parse(localStorage.getItem("achats")) || [];
+  if (ventes.length === 0) {
+    list.innerHTML = "<p style='text-align:center;margin-top:20px;'>Aucune statistique</p>";
+    return;
+  }
 
-  let ventes = JSON.parse(localStorage.getItem("ventes")) || [];
-  let achats = JSON.parse(localStorage.getItem("achats")) || [];
-  let paiements = JSON.parse(localStorage.getItem("paiements")) || [];
-  let commandes = JSON.parse(localStorage.getItem("commandes")) || [];
-  let clients = JSON.parse(localStorage.getItem("clients")) || [];
-
-  let totalVentes = ventes.reduce((s, v) => s + Number(v.prix || 0), 0);
-  let totalAchats = achats.reduce((s, a) => s + Number(a.montant || 0), 0);
-  let totalPaiements = paiements.reduce((s, p) => s + Number(p.montant || 0), 0);
-
-  let benefice = totalPaiements - totalAchats;
-
-  totalVentesEl.innerText = totalVentes + " $";
-  totalAchatsEl.innerText = totalAchats + " $";
-  totalPaiementsEl.innerText = totalPaiements + " $";
-  beneficeEl.innerText = benefice + " $";
-  totalCommandesEl.innerText = commandes.length;
-  totalClientsEl.innerText = clients.length;
+  let total = ventes.reduce((sum, v) => sum + (v.prix * v.quantite), 0);
+  let div = document.createElement("div");
+  div.className = "stats-item";
+  div.innerHTML = `
+    <strong>Total des ventes:</strong> ${total} HTG<br>
+    <strong>Nombre de ventes:</strong> ${ventes.length}
+  `;
+  list.appendChild(div);
 }
 
-const totalVentesEl = document.getElementById("totalVentes");
-const totalAchatsEl = document.getElementById("totalAchats");
-const totalPaiementsEl = document.getElementById("totalPaiements");
-const beneficeEl = document.getElementById("benefice");
-const totalCommandesEl = document.getElementById("totalCommandes");
-const totalClientsEl = document.getElementById("totalClients");
-
-calcStats();
+document.addEventListener("DOMContentLoaded", loadStats);
 </script>
 
 </body>
