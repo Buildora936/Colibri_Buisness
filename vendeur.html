@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Profil Vendeur - Colibri Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<title>Profil Vendeur - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -24,52 +22,48 @@
 </nav>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
-    authDomain: "collibri-buisiness.firebaseapp.com",
-    databaseURL: "https://collibri-buisiness-default-rtdb.firebaseio.com",
-    projectId: "collibri-buisiness",
-    messagingSenderId: "812403400254",
-    appId: "1:812403400254:web:773de4e308a172d614fb6f"
-  };
+const app = initializeApp({
+ apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+ authDomain:"collibri-buisiness.firebaseapp.com",
+ databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
+ projectId:"collibri-buisiness"
+});
+const db = getDatabase(app);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const produitsRef = ref(db, "produits");
+const params = new URLSearchParams(window.location.search);
+const vendeur = params.get("vendeur") || "Vendeur inconnu";
 
-  const params = new URLSearchParams(window.location.search);
-  const vendeur = params.get("vendeur") || "Vendeur inconnu";
+document.getElementById("vendeurNom").innerText = `Profil : ${vendeur}`;
 
-  document.getElementById("vendeurNom").innerText = `Profil : ${vendeur}`;
+const produitsRef = ref(db,"produits");
+onValue(produitsRef, snap=>{
+  const produitList = document.getElementById("produitList");
+  produitList.innerHTML = "";
 
-  onValue(produitsRef, snap => {
-    const produitList = document.getElementById("produitList");
-    produitList.innerHTML = "";
-
-    const produits = [];
-    snap.forEach(p => {
-      const data = p.val();
-      if (data.vendeurNom === vendeur) produits.push({ ...data, id: p.key });
-    });
-
-    produits.reverse().forEach(p => {
-      const div = document.createElement("div");
-      div.className = "client-item";
-      div.innerHTML = `
-        <img src="${p.image}" style="width:100%;border-radius:12px;margin-bottom:8px">
-        <strong>${p.nom}</strong><br>
-        <small>${p.prix} USD</small>
-      `;
-      produitList.appendChild(div);
-    });
-
-    if(produits.length === 0){
-      produitList.innerHTML = "<p>Aucun produit publié par ce vendeur.</p>";
-    }
+  const produits = [];
+  snap.forEach(p=>{
+    const data = p.val();
+    if(data.vendeurNom === vendeur) produits.push(data);
   });
+
+  produits.reverse().forEach(p=>{
+    const div = document.createElement("div");
+    div.className = "client-item";
+    div.innerHTML = `
+      <img src="${p.image}" style="width:100%;border-radius:12px;margin-bottom:8px">
+      <strong>${p.nom}</strong><br>
+      <small>${p.prix} USD</small>
+    `;
+    produitList.appendChild(div);
+  });
+
+  if(produits.length === 0){
+    produitList.innerHTML = "<p>Aucun produit publié par ce vendeur.</p>";
+  }
+});
 </script>
 
 </body>
