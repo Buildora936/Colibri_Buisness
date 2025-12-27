@@ -17,9 +17,6 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 .card img{width:100%;border-radius:12px;margin-bottom:8px}
 .card h3{margin:0;font-size:18px;color:#1E3A8A}
 .card .price{color:#1E40AF;font-weight:bold;margin:6px 0}
-.card .heart{font-size:22px;cursor:pointer;align-self:flex-end}
-.card .heart.red{color:red}
-.card small{opacity:0.7}
 .search-bar{display:flex;margin:12px;gap:8px}
 .search-bar input, .search-bar select{flex:1;padding:10px;border-radius:10px;border:1px solid #ccc}
 .fab{position:fixed;bottom:70px;right:16px;background:#1E3A8A;color:white;width:56px;height:56px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer}
@@ -34,10 +31,10 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 <div class="search-bar">
  <input id="search" placeholder="Rechercher un produit">
  <select id="sort">
-   <option value="">Trier</option>
-   <option value="prix-asc">Prix ↑</option>
-   <option value="prix-desc">Prix ↓</option>
-   <option value="new">Nouveautés</option>
+  <option value="">Trier</option>
+  <option value="prix-asc">Prix ↑</option>
+  <option value="prix-desc">Prix ↓</option>
+  <option value="new">Nouveautés</option>
  </select>
 </div>
 
@@ -56,7 +53,7 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
@@ -74,7 +71,8 @@ let produits = [];
 
 async function loadProduits(){
  const snap = await get(ref(db,"produits"));
- produits = snap.exists() ? Object.entries(snap.val()).map(([id,v]) => ({...v,id})) : [];
+ produits = snap.exists()?Object.entries(snap.val()).map(([id,v])=>({...v,id})):[];
+
  renderProduits();
 }
 
@@ -82,7 +80,7 @@ function renderProduits(){
  const search = searchInput.value.toLowerCase();
  const sort = sortSelect.value;
 
- let list = produits.filter(p => p.nom.toLowerCase().includes(search));
+ let list = produits.filter(p=> p.nom.toLowerCase().includes(search));
 
  if(sort==="prix-asc") list.sort((a,b)=>a.prix-b.prix);
  if(sort==="prix-desc") list.sort((a,b)=>b.prix-a.prix);
@@ -90,27 +88,15 @@ function renderProduits(){
 
  achatList.innerHTML="";
  list.forEach(p=>{
-   const div=document.createElement("div");
+   const div = document.createElement("div");
    div.className="card";
    div.innerHTML=`
-     <span class="heart" id="fav-${p.id}">🤍</span>
      <img src="${p.image}" onclick="location.href='produit.html?id=${p.id}'">
      <h3>${p.nom}</h3>
      <div class="price">${p.prix} USD</div>
      <small>${p.description.slice(0,60)}...</small>
    `;
    achatList.appendChild(div);
-
-   // Gestion cœur favoris
-   const heart = div.querySelector(".heart");
-   const uid = "public"; // pour test, tu peux remplacer par currentUser si connecté
-   const favRef = ref(db, `favoris/${uid}/${p.id}`);
-   get(favRef).then(snap => { if(snap.exists()) heart.classList.add("red"); });
-   heart.onclick = async ()=>{
-     const snap = await get(favRef);
-     snap.exists() ? remove(favRef) : set(favRef,true);
-     heart.classList.toggle("red");
-   };
  });
 }
 
