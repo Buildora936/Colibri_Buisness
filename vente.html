@@ -13,7 +13,15 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 .menu-bas{position:fixed;bottom:0;width:100%;background:#1E40AF;display:flex;justify-content:space-around;padding:10px 0}
 .menu-bas a{color:white;font-size:20px;text-decoration:none}
 .container{padding:12px;display:grid;grid-template-columns:1fr;gap:12px}
-.card{background:white;border-radius:14px;padding:12px}
+.card{background:white;border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.card h3{margin:0;font-size:20px;color:#1E3A8A}
+.card .price{color:#1E40AF;font-weight:bold;margin:6px 0}
+.card img{width:100%;border-radius:12px;margin-top:8px}
+.card iframe{width:100%;height:180px;border-radius:12px;margin-top:8px}
+textarea,input{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-top:8px}
+button{padding:10px;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
+.btn-primary{background:#1E3A8A;color:white}
+.btn-danger{background:red;color:white;margin-top:8px}
 </style>
 </head>
 
@@ -23,18 +31,22 @@ header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:2
 <div class="pub-banner">ESPACE PUBLICITAIRE</div>
 
 <div class="container">
+  <h3>Ajouter un produit</h3>
   <input id="nomProduit" placeholder="Nom du produit">
   <input id="prixProduit" type="number" placeholder="Prix (USD)">
   <textarea id="descProduit" placeholder="Description"></textarea>
   <input id="imageProduit" placeholder="URL image">
   <input id="videoProduit" placeholder="URL vidéo YouTube (embed)">
-  <button onclick="saveVente()">Publier</button>
+  <button class="btn-primary" onclick="saveVente()">Publier</button>
 </div>
 
 <div class="container" id="venteList"></div>
 
 <nav class="menu-bas">
  <a href="achat.html"><i class="fas fa-cart-shopping"></i></a>
+ <a href="commandes.html"><i class="fas fa-box"></i></a>
+ <a href="paiements.html"><i class="fas fa-credit-card"></i></a>
+ <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
  <a href="chaines.html"><i class="fas fa-rss"></i></a>
 </nav>
 
@@ -43,55 +55,106 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebas
 import { getDatabase, ref, get, set, remove, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
+// Initialisation Firebase
 const app = initializeApp({
  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
  authDomain:"collibri-buisiness.firebaseapp.com",
  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
  projectId:"collibri-buisiness"
 });
-
 const db = getDatabase(app);
 const auth = getAuth(app);
+
+const venteList = document.getElementById("venteList");
 let currentUser = null;
 
-onAuthStateChanged(auth, user=>{
- if(!user) location.href="login.html";
- currentUser = user.uid;
- loadVentes();
+// 🔐 Auth obligatoire
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    currentUser = user.uid;
+    loadVentes();
+  }
 });
 
+// ➕ Publier produit
 async function saveVente(){
- if(!currentUser) return;
+  if(!currentUser) return;
 
- await set(push(ref(db,"produits")),{
-   nom: nomProduit.value,
-   prix: prixProduit.value,
-   description: descProduit.value,
-   image: imageProduit.value,
-   video: videoProduit.value,
-   vendeurId: currentUser,
-   createdAt: Date.now()
- });
- loadVentes();
+  const nom = document.getElementById("nomProduit").value.trim();
+  const prix = document.getElementById("prixProduit").value.trim();
+  const desc = document.getElementById("descProduit").value.trim();
+  const image = document.getElementById("imageProduit").value.trim();
+  const video = document.getElementById("videoProduit").value.trim();
+
+  if(!nom || !prix || !desc || !image || !video){
+    alert("Tous les champs sont obligatoires");
+    return;
+  }
+
+  await set(push(ref(db,"produits")),{
+    nom,
+    prix,
+    description: desc,
+    image,
+    video,
+    vendeurId: currentUser,
+    createdAt: Date.now()
+  });
+
+  document.getElementById("nomProduit").value = "";
+  document.getElementById("prixProduit").value = "";
+  document.getElementById("descProduit").value = "";
+  document.getElementById("imageProduit").value = "";
+  document.getElementById("videoProduit").value = "";
+
+  loadVentes();
 }
 
+// 📦 Charger produits
 async function loadVentes(){
- venteList.innerHTML="";
- const snap = await get(ref(db,"produits"));
- if(!snap.exists()) return;
+  venteList.innerHTML="";
+  const snap = await get(ref(db,"produits"));
+  if(!snap.exists()) return;
 
- Object.entries(snap.val()).forEach(([id,p])=>{
-   if(p.vendeurId !== currentUser) return;
-   const d=document.createElement("div");
-   d.className="card";
-   d.innerHTML=`
-     <h3>${p.nom}</h3>
-     <p>${p.prix} USD</p>
-     <button>Supprimer</button>`;
-   d.querySelector("button").onclick=()=>remove(ref(db,"produits/"+id)).then(loadVentes);
-   venteList.appendChild(d);
- });
+  Object.entries(snap.val()).forEach(([id,p])=>{
+    if(p.vendeurId !== currentUser) return;
+
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <h3>${p.nom}</h3>
+      <div class="price">${p.prix} USD</div>
+      <p>${p.description}</p>
+      <img src="${p.image}">
+      <iframe src="${p.video}" allowfullscreen></iframe>
+      <button class="btn-danger">Supprimer</button>
+    `;
+    div.querySelector("button").onclick = async ()=>{
+      if(confirm("Supprimer ce produit ?")){
+        await remove(ref(db,"produits/"+id));
+        loadVentes();
+      }
+    };
+
+    // Ajouter cœur favori
+    const favSpan = document.createElement("span");
+    favSpan.className = "heart";
+    favSpan.innerText = "🤍";
+    div.prepend(favSpan);
+    const favRef = ref(db,`favoris/${currentUser}/${id}`);
+    get(favRef).then(s=>{if(s.exists()) favSpan.classList.add("red");});
+    favSpan.onclick = async ()=>{
+      const s = await get(favRef);
+      s.exists()?remove(favRef):set(favRef,true);
+      favSpan.classList.toggle("red");
+    };
+
+    venteList.appendChild(div);
+  });
 }
 </script>
+
 </body>
 </html>
