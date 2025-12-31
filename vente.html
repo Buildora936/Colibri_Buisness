@@ -2,27 +2,29 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Vendre un produit - Colibri Business</title>
+<title>Vente - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
 header{background:#1E3A8A;color:white;padding:16px;text-align:center;font-size:20px}
 .container{padding:16px}
-input,textarea{
-  width:100%;padding:12px;margin-bottom:12px;
-  border-radius:10px;border:1px solid #ccc
+input,textarea,button{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ccc
 }
 button{
-  width:100%;padding:14px;
-  background:#1E3A8A;color:white;
-  border:none;border-radius:12px;
-  font-size:16px;cursor:pointer
+  background:#1E3A8A;
+  color:white;
+  font-size:16px;
+  border:none;
+  cursor:pointer
 }
-.preview img,video{
-  width:100%;border-radius:12px;margin-bottom:12px
-}
+label{font-weight:bold;color:#1E3A8A}
+.option{display:flex;align-items:center;gap:8px}
 </style>
 </head>
 
@@ -31,16 +33,29 @@ button{
 <header>Publier un produit</header>
 
 <div class="container">
-  <input id="nom" placeholder="Nom du produit">
-  <input id="prix" type="number" placeholder="Prix (USD)">
-  <textarea id="desc" placeholder="Description"></textarea>
 
-  <input type="file" id="image" accept="image/*">
-  <input type="file" id="video" accept="video/*">
+<label>Nom du produit</label>
+<input id="nom">
 
-  <div class="preview" id="preview"></div>
+<label>Prix (USD)</label>
+<input id="prix" type="number">
 
-  <button onclick="publier()">Publier</button>
+<label>Description</label>
+<textarea id="desc"></textarea>
+
+<label>Images du produit (plusieurs possibles)</label>
+<input id="images" type="file" multiple accept="image/*">
+
+<label>Vidéo du produit (optionnel)</label>
+<input id="video" type="file" accept="video/*">
+
+<div class="option">
+  <input type="checkbox" id="sponsor">
+  <label>Sponsoriser ce produit (plus tard)</label>
+</div>
+
+<button onclick="publish()">Publier</button>
+
 </div>
 
 <script type="module">
@@ -52,42 +67,40 @@ const app = initializeApp({
   databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
   projectId:"collibri-buisiness"
 });
+
 const db = getDatabase(app);
 
-const uid = localStorage.getItem("uid");
-
-let imageBase64="", videoBase64="";
-
-function toBase64(file,cb){
-  const r=new FileReader();
-  r.onload=()=>cb(r.result);
-  r.readAsDataURL(file);
+async function toBase64(file){
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result);
+    r.readAsDataURL(file);
+  });
 }
 
-image.onchange=e=>toBase64(e.target.files[0],b=>{
-  imageBase64=b;
-  preview.innerHTML=`<img src="${b}">`;
-});
+window.publish = async ()=>{
+  const nom=nomInput.value;
+  const prix=prixInput.value;
+  if(!nom||!prix){alert("Champs obligatoires");return;}
 
-video.onchange=e=>toBase64(e.target.files[0],b=>{
-  videoBase64=b;
-  preview.innerHTML+=`<video controls src="${b}"></video>`;
-});
+  const imgs=[];
+  for(const f of images.files){
+    imgs.push(await toBase64(f));
+  }
 
-window.publier = async ()=>{
-  if(!uid){ alert("Veuillez vous connecter"); return; }
+  const vid = video.files[0]? await toBase64(video.files[0]):null;
 
   await push(ref(db,"produits"),{
-    nom:nom.value,
-    prix:prix.value,
+    nom,
+    prix,
     desc:desc.value,
-    image:imageBase64,
-    video:videoBase64,
-    vendeurId:uid,
+    images:imgs,
+    video:vid,
+    sponsor:sponsor.checked,
     createdAt:Date.now()
   });
 
-  alert("✅ Produit publié avec succès");
+  alert("✅ Produit publié");
   location.href="achat.html";
 };
 </script>
