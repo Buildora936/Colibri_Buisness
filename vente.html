@@ -2,14 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Vendre un produit</title>
+<title>Vendre un produit - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
 header{background:#1E3A8A;color:white;padding:16px;text-align:center;font-size:20px}
-
 .container{padding:16px}
 input,textarea{
   width:100%;padding:12px;margin-bottom:12px;
@@ -17,12 +16,12 @@ input,textarea{
 }
 button{
   width:100%;padding:14px;
-  background:#1E40AF;color:white;
+  background:#1E3A8A;color:white;
   border:none;border-radius:12px;
   font-size:16px;cursor:pointer
 }
 .preview img,video{
-  width:100%;border-radius:12px;margin-bottom:10px
+  width:100%;border-radius:12px;margin-bottom:12px
 }
 </style>
 </head>
@@ -32,19 +31,16 @@ button{
 <header>Publier un produit</header>
 
 <div class="container">
+  <input id="nom" placeholder="Nom du produit">
+  <input id="prix" type="number" placeholder="Prix (USD)">
+  <textarea id="desc" placeholder="Description"></textarea>
 
-<input id="name" placeholder="Nom du produit">
-<input id="price" type="number" placeholder="Prix (USD)">
-<textarea id="desc" placeholder="Description du produit"></textarea>
+  <input type="file" id="image" accept="image/*">
+  <input type="file" id="video" accept="video/*">
 
-<input type="file" id="image" accept="image/*">
-<input type="file" id="video" accept="video/*">
+  <div class="preview" id="preview"></div>
 
-<div class="preview" id="preview"></div>
-
-<button onclick="publish()">Publier</button>
-<p id="msg"></p>
-
+  <button onclick="publier()">Publier</button>
 </div>
 
 <script type="module">
@@ -59,31 +55,31 @@ const app = initializeApp({
 const db = getDatabase(app);
 
 const uid = localStorage.getItem("uid");
-if(!uid) location.href="auth.html";
 
 let imageBase64="", videoBase64="";
 
-image.onchange = e=>{
+function toBase64(file,cb){
   const r=new FileReader();
-  r.onload=()=>{ imageBase64=r.result; preview.innerHTML=`<img src="${r.result}">`; };
-  r.readAsDataURL(e.target.files[0]);
-};
+  r.onload=()=>cb(r.result);
+  r.readAsDataURL(file);
+}
 
-video.onchange = e=>{
-  const r=new FileReader();
-  r.onload=()=>{ videoBase64=r.result; preview.innerHTML+=`<video controls src="${r.result}"></video>`; };
-  r.readAsDataURL(e.target.files[0]);
-};
+image.onchange=e=>toBase64(e.target.files[0],b=>{
+  imageBase64=b;
+  preview.innerHTML=`<img src="${b}">`;
+});
 
-async function publish(){
-  if(!name.value || !price.value || !imageBase64){
-    msg.textContent="⚠️ Champs obligatoires manquants";
-    return;
-  }
+video.onchange=e=>toBase64(e.target.files[0],b=>{
+  videoBase64=b;
+  preview.innerHTML+=`<video controls src="${b}"></video>`;
+});
+
+window.publier = async ()=>{
+  if(!uid){ alert("Veuillez vous connecter"); return; }
 
   await push(ref(db,"produits"),{
-    nom:name.value,
-    prix:price.value,
+    nom:nom.value,
+    prix:prix.value,
     desc:desc.value,
     image:imageBase64,
     video:videoBase64,
@@ -91,9 +87,9 @@ async function publish(){
     createdAt:Date.now()
   });
 
-  msg.textContent="✅ Produit publié";
-  setTimeout(()=>location.href="achat.html",1200);
-}
+  alert("✅ Produit publié avec succès");
+  location.href="achat.html";
+};
 </script>
 
 </body>
