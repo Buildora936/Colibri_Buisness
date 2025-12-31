@@ -1,0 +1,264 @@
+<!DOCTYPE html>  <html lang="fr">  
+<head>  
+<meta charset="UTF-8">  
+<title>Produit - Colibri Business</title>  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+<style>  
+body{margin:0;font-family:Arial;background:#e6f0ff}  
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}  
+.container{padding:16px}  .seller{
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:12px
+}
+.seller img{
+width:46px;height:46px;
+border-radius:50%;
+object-fit:cover;
+background:#c7d2fe;
+cursor:pointer;
+}
+.seller span{
+font-weight:bold;
+color:#1E3A8A;
+cursor:pointer;
+}
+
+.prod-image{width:100%;border-radius:12px;margin-bottom:16px}
+.prod-name{font-size:22px;color:#1E3A8A;margin-bottom:8px}
+.prod-price{font-weight:bold;color:#1E40AF;margin-bottom:12px}
+.prod-desc{margin-bottom:16px}
+
+.actions{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+margin-bottom:20px
+}
+.actions button{
+flex:1;
+padding:12px;
+border:none;
+border-radius:12px;
+font-size:16px;
+color:white;
+cursor:pointer
+}
+#favBtn{background:#25D366}
+#favBtn.red{background:red}
+#shareBtn{background:#3b82f6}
+#contactBtn{background:#1E3A8A}
+#btnCommander{background:#1E40AF}
+#msg{width:100%;margin-top:10px;color:green;font-weight:bold}
+.comment-list{
+margin-top:12px;
+display:flex;
+flex-direction:column;
+gap:10px;
+max-height:300px;
+overflow-y:auto;
+}
+
+.comment{
+background:white;
+padding:10px 14px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+.comment-user{
+font-weight:bold;
+color:#1E3A8A;
+}
+
+.comment-text{
+margin-top:4px;
+color:#333;
+word-wrap:break-word;
+}
+
+.comment-form{
+display:flex;
+gap:8px;
+margin-top:12px;
+}
+
+.comment-form input{
+flex:1;
+padding:10px;
+border-radius:12px;
+border:1px solid #ccc;
+}
+
+.comment-form button{
+background:#1E40AF;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:12px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.comment-form button:hover{
+background:#2563eb;
+}
+
+.other-products{margin-top:20px}
+.other-products h3{color:#1E3A8A}
+.other-products .card{
+background:white;border-radius:12px;padding:12px;margin-bottom:12px;
+box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;
+}
+.other-products img{width:100%;border-radius:12px}
+</style>
+
+</head>  <body>  <header>Produit</header>  <div class="container">    <!-- Vendeur -->    <div class="seller">  
+    <img id="sellerAvatar">  
+    <span id="sellerName"></span>  
+  </div>    <!-- Produit -->    <img id="prodImage" class="prod-image">  
+  <div class="prod-name" id="prodName"></div>  
+  <div class="prod-price" id="prodPrice"></div>  
+  <div class="prod-desc" id="prodDesc"></div>    <!-- Actions -->    <div class="actions">  
+    <button id="favBtn"><i class="fas fa-heart"></i> <span id="likeCount">0</span></button>  
+    <button id="shareBtn"><i class="fas fa-share"></i> Partager</button>  
+    <button id="contactBtn"><i class="fas fa-phone"></i> Contacter</button>  
+    <button id="btnCommander">Commander</button>  
+    <div id="msg"></div>  
+  </div>  <!-- Commentaires -->  <div class="comments">  
+  <h3>Commentaires</h3>  
+  <div id="commentList" class="comment-list"></div>    <div class="comment-form">  
+    <input type="text" id="commentInput" placeholder="Ajouter un commentaire">  
+    <button id="commentBtn">Envoyer</button>  
+  </div>  
+</div>    <!-- Autres produits du vendeur -->    <div class="other-products">  
+    <h3>Autres produits de ce vendeur</h3>  
+    <div id="otherProducts"></div>  
+  </div>  </div>  <script type="module">  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";  
+import { getDatabase, ref, get, set, remove, push, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";  
+  
+const firebaseConfig = {  
+  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",  
+  authDomain:"collibri-buisiness.firebaseapp.com",  
+  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",  
+  projectId:"collibri-buisiness"  
+};  
+  
+const app = initializeApp(firebaseConfig);  
+const db = getDatabase(app);  
+  
+const prodId = new URLSearchParams(location.search).get("id");  
+const uid = localStorage.getItem("uid")||"public";  
+  
+// Elements  
+const prodImage = document.getElementById("prodImage");  
+const prodName = document.getElementById("prodName");  
+const prodPrice = document.getElementById("prodPrice");  
+const prodDesc = document.getElementById("prodDesc");  
+const sellerAvatar = document.getElementById("sellerAvatar");  
+const sellerName = document.getElementById("sellerName");  
+const favBtn = document.getElementById("favBtn");  
+const likeCount = document.getElementById("likeCount");  
+const shareBtn = document.getElementById("shareBtn");  
+const contactBtn = document.getElementById("contactBtn");  
+const btnCommander = document.getElementById("btnCommander");  
+const msg = document.getElementById("msg");  
+  
+const commentList = document.getElementById("commentList");  
+const commentInput = document.getElementById("commentInput");  
+const commentBtn = document.getElementById("commentBtn");  
+  
+const otherProducts = document.getElementById("otherProducts");  
+  
+let produit=null;  
+let vendeurId=null;  
+  
+// Charger produit  
+async function loadProduct(){  
+  const snap = await get(ref(db,`produits/${prodId}`));  
+  if(!snap.exists()){ alert("Produit introuvable"); return; }  
+  produit = snap.val();  
+  vendeurId = produit.vendeurId;  
+  
+  prodImage.src = produit.image;  
+  prodName.textContent = produit.nom;  
+  prodPrice.textContent = produit.prix + " USD";  
+  prodDesc.textContent = produit.desc;  
+  
+  // Charger vendeur  
+  const userSnap = await get(ref(db,`users/${vendeurId}`));  
+  if(userSnap.exists()){  
+    const u = userSnap.val();  
+    sellerAvatar.src = u.avatarBase64 || "";  
+    sellerName.textContent = u.business || u.nom;  
+  
+    sellerAvatar.onclick = sellerName.onclick = ()=>location.href=`vendeur.html?id=${vendeurId}`;  
+    contactBtn.onclick = ()=>{ if(u.phone) window.location.href=`tel:${u.phone}`; };  
+  }  
+  
+  // Likes  
+  const favRef = ref(db,`favoris/${prodId}/${uid}`);  
+  const likesRef = ref(db,`favorisCount/${prodId}`);  
+  onValue(likesRef,s=>{ likeCount.textContent = s.exists()?Object.keys(s.val()).length:0; });  
+  get(favRef).then(s=>{ if(s.exists()) favBtn.classList.add("red"); });  
+  favBtn.onclick = async ()=>{  
+    const s = await get(favRef);  
+    if(s.exists()){ remove(favRef); remove(ref(db,`favorisCount/${prodId}/${uid}`)); favBtn.classList.remove("red"); }  
+    else{ set(favRef,true); set(ref(db,`favorisCount/${prodId}/${uid}`),true); favBtn.classList.add("red"); }  
+  };  
+  
+  // Partager  
+  shareBtn.onclick = ()=>{ navigator.share? navigator.share({title:produit.nom,text:"Produit sur Colibri Business",url:location.href}):prompt("Lien :",location.href); };  
+  
+  // Commander  
+  btnCommander.onclick = async()=>{  
+    await push(ref(db,"commandes"),{  
+      produitId:prodId, vendeurId:vendeurId, acheteurId:uid, prix:produit.prix, createdAt:Date.now(), statut:"en attente"  
+    });  
+    msg.textContent="✅ Commande envoyée";  
+  };  
+  
+  // Charger autres produits  
+  const snapProducts = await get(ref(db,"produits"));  
+  if(snapProducts.exists()){  
+    const allProducts = Object.entries(snapProducts.val()).filter(([id,p])=>p.vendeurId===vendeurId && id!==prodId);  
+    otherProducts.innerHTML="";  
+    allProducts.forEach(([id,p])=>{  
+      const div = document.createElement("div");  
+      div.className="card";  
+      div.innerHTML=`<img src="${p.image}"><div>${p.nom}</div><div>${p.prix} USD</div>`;  
+      div.onclick = ()=>location.href=`produit.html?id=${id}`;  
+      otherProducts.appendChild(div);  
+    });  
+  }  
+  
+  // Charger commentaires  
+  const commentRef = ref(db,`commentaires/${prodId}`);  
+  onValue(commentRef,s=>{  
+    commentList.innerHTML="";  
+    if(s.exists()){  
+      Object.values(s.val()).forEach(c=>{  
+        const div=document.createElement("div");  
+        div.className="comment";  
+        div.innerHTML=`<div class="comment-user">${c.user}</div><div class="comment-text">${c.text}</div>`;  
+        commentList.appendChild(div);  
+      });  
+    }  
+  });  
+}  
+  
+// Ajouter commentaire  
+commentBtn.onclick = async ()=>{  
+  const text = commentInput.value.trim();  
+  if(!text) return;  
+  const userName = localStorage.getItem("username")||"Anonyme";  
+  await push(ref(db,`commentaires/${prodId}`),{user:userName,text});  
+  commentInput.value="";  
+};  
+  
+loadProduct();  
+</script>  </body>  
+</html>
