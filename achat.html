@@ -15,8 +15,8 @@ header{
   background:#1E3A8A;
   color:white;
   padding:14px;
+  text-align:center;
   font-size:20px;
-  text-align:center
 }
 
 /* SEARCH */
@@ -24,34 +24,46 @@ header{
   display:flex;
   gap:8px;
   padding:10px;
-  background:white
+  background:white;
 }
-.search-bar input,
-.search-bar select{
+.search-bar input, .search-bar select{
   flex:1;
   padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 
-/* PRODUCTS */
-.container{padding:12px}
+/* GRID */
+.products{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  padding:12px;
+}
+
 .card{
   background:white;
-  border-radius:14px;
-  padding:12px;
-  margin-bottom:12px;
+  border-radius:12px;
+  padding:8px;
   box-shadow:0 2px 6px rgba(0,0,0,.08);
-  cursor:pointer
+  cursor:pointer;
 }
 .card img{
   width:100%;
-  height:180px;
+  height:120px;
   object-fit:cover;
-  border-radius:12px
+  border-radius:10px;
 }
-.card h3{margin:8px 0;color:#1E3A8A}
-.card p{margin:0;font-weight:bold}
+.card .name{
+  font-weight:bold;
+  color:#1E3A8A;
+  font-size:14px;
+  margin-top:6px;
+}
+.card .price{
+  color:#1E40AF;
+  font-size:13px;
+}
 
 /* FAB */
 .fab{
@@ -59,25 +71,26 @@ header{
   bottom:70px;
   right:20px;
   width:56px;height:56px;
-  border-radius:50%;
   background:#1E3A8A;
   color:white;
+  border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:22px;
+  font-size:24px;
   box-shadow:0 4px 10px rgba(0,0,0,.3);
-  cursor:pointer
+  cursor:pointer;
 }
 
 /* MENU */
 .menu{
   position:fixed;
-  bottom:0;width:100%;
+  bottom:0;
+  width:100%;
   background:#1E3A8A;
   display:flex;
   justify-content:space-around;
-  padding:10px 0
+  padding:10px 0;
 }
 .menu a{color:white;font-size:20px}
 </style>
@@ -85,26 +98,26 @@ header{
 
 <body>
 
-<header>Marketplace</header>
+<header>Produits</header>
 
 <div class="search-bar">
-  <input id="search" placeholder="Rechercher un produit">
+  <input id="search" placeholder="Rechercher produit...">
   <select id="filter">
-    <option value="nom">Nom</option>
-    <option value="prix">Prix</option>
+    <option value="all">Tous</option>
+    <option value="low">Prix bas</option>
+    <option value="high">Prix élevé</option>
   </select>
 </div>
 
-<div class="container" id="products"></div>
+<div class="products" id="products"></div>
 
 <div class="fab" onclick="location.href='vente.html'">
   <i class="fas fa-plus"></i>
 </div>
 
 <nav class="menu">
-  <a href="achat.html"><i class="fas fa-home"></i></a>
+  <a href="achat.html"><i class="fas fa-store"></i></a>
   <a href="commande.html"><i class="fas fa-box"></i></a>
-  <a href="favoris.html"><i class="fas fa-heart"></i></a>
   <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
   <a href="profil.html"><i class="fas fa-user"></i></a>
 </nav>
@@ -120,41 +133,45 @@ const app = initializeApp({
 });
 
 const db = getDatabase(app);
-const list = document.getElementById("products");
+const productsEl = document.getElementById("products");
 const search = document.getElementById("search");
 const filter = document.getElementById("filter");
 
-let produits=[];
+let allProducts = [];
 
-onValue(ref(db,"produits"), snap=>{
-  produits = snap.exists()?Object.entries(snap.val()):[];
-  render(produits);
+onValue(ref(db,"produits"),snap=>{
+  allProducts = snap.exists()
+    ? Object.entries(snap.val()).map(([id,p])=>({...p,id}))
+    : [];
+  render(allProducts);
 });
 
-function render(data){
-  list.innerHTML="";
-  if(data.length===0){
-    list.innerHTML="<p>Aucun produit</p>";
-    return;
-  }
-  data.forEach(([id,p])=>{
+function render(list){
+  productsEl.innerHTML="";
+  list.forEach(p=>{
     const div=document.createElement("div");
     div.className="card";
     div.innerHTML=`
-      <img src="${p.images?.[0] || p.image}">
-      <h3>${p.nom}</h3>
-      <p>${p.prix} USD</p>
+      <img src="${p.image}">
+      <div class="name">${p.nom}</div>
+      <div class="price">${p.prix} USD</div>
     `;
-    div.onclick=()=>location.href=`produit.html?id=${id}`;
-    list.appendChild(div);
+    div.onclick=()=>location.href=`produit.html?id=${p.id}`;
+    productsEl.appendChild(div);
   });
 }
 
-search.oninput=()=>{
+search.oninput=()=>apply();
+filter.onchange=()=>apply();
+
+function apply(){
+  let list=[...allProducts];
   const q=search.value.toLowerCase();
-  const f=filter.value;
-  render(produits.filter(([_,p])=>(p[f]+"").toLowerCase().includes(q)));
-};
+  if(q) list=list.filter(p=>p.nom.toLowerCase().includes(q));
+  if(filter.value==="low") list.sort((a,b)=>a.prix-b.prix);
+  if(filter.value==="high") list.sort((a,b)=>b.prix-a.prix);
+  render(list);
+}
 </script>
 
 </body>
