@@ -69,6 +69,16 @@ header{
   font-size:13px;
 }
 
+/* PUB AD CARD */
+.ad-card{
+  grid-column:span 2;
+  text-align:center;
+  padding:8px;
+  background:#f8fafc;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+
 /* FAB */
 .fab{
   position:fixed;
@@ -97,19 +107,12 @@ header{
   padding:10px 0;
 }
 .menu a{color:white;font-size:20px}
-
-/* PUB AD */
-.ad-container{
-  margin:10px auto;
-  text-align:center;
-}
 </style>
 </head>
 
 <body>
 
 <header>Produits</header>
-
 
 <div class="search-bar">
   <input id="search" placeholder="Rechercher produit...">
@@ -119,16 +122,7 @@ header{
     <option value="high">Prix élevé</option>
   </select>
 </div>
-<div class="ad-container">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-format="horizontal"
-       data-ad-layout="in-article"
-       data-full-width-responsive="true"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
+
 <div class="products" id="products"></div>
 
 <div class="fab" onclick="location.href='vente.html'">
@@ -168,7 +162,21 @@ onValue(ref(db,"produits"),snap=>{
 
 function render(list){
   productsEl.innerHTML="";
-  list.forEach(p=>{
+  list.forEach((p,index)=>{
+    // INSERER PUB CHAQUE 4 PRODUITS
+    if(index>0 && index%4===0){
+      const adDiv = document.createElement("div");
+      adDiv.className="ad-card";
+      adDiv.innerHTML=`
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+      `;
+      productsEl.appendChild(adDiv);
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }
+
     const div=document.createElement("div");
     div.className="card";
     div.innerHTML=`
