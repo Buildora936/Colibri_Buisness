@@ -2,193 +2,93 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Vendeur - Colibri Business</title>
+<title>Vendeur</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
-header{
-  background:#1E3A8A;
-  color:white;
-  padding:14px;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold
-}
-.container{padding:16px}
-
-/* PROFIL */
+header{background:#1E3A8A;color:white;padding:16px;text-align:center}
 .profile{
   background:white;
-  border-radius:14px;
+  margin:16px;
   padding:16px;
-  display:flex;
-  gap:14px;
-  align-items:center;
-  margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08)
+  border-radius:12px;
+  text-align:center;
 }
 .profile img{
-  width:70px;height:70px;
+  width:80px;height:80px;
   border-radius:50%;
   object-fit:cover;
-  background:#c7d2fe
 }
-.profile h2{margin:0;color:#1E3A8A}
-.profile p{margin:4px 0;color:#555}
+.profile h2{color:#1E3A8A}
 
-/* STATS */
-.stats{
-  display:flex;
-  gap:10px;
-  margin-bottom:20px
+.products{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  padding:16px;
 }
-.stat{
-  flex:1;
-  background:white;
-  border-radius:12px;
-  padding:12px;
-  text-align:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.06)
-}
-.stat strong{color:#1E3A8A;font-size:18px}
-
-/* PRODUCTS */
-.products h3{color:#1E3A8A;margin-bottom:10px}
 .card{
   background:white;
   border-radius:12px;
-  padding:12px;
-  margin-bottom:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.06);
-  cursor:pointer
+  padding:8px;
+  cursor:pointer;
 }
 .card img{
   width:100%;
-  border-radius:12px;
-  margin-bottom:8px
-}
-.card strong{color:#1E3A8A}
-
-/* BUTTON */
-.btn{
-  display:block;
-  width:100%;
-  padding:12px;
-  background:#1E3A8A;
-  color:white;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-  margin-top:10px
+  height:110px;
+  object-fit:cover;
+  border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<header>Profil vendeur</header>
+<header>Vendeur</header>
 
-<div class="container">
-
-  <!-- PROFIL -->
-  <div class="profile">
-    <img id="avatar">
-    <div>
-      <h2 id="businessName"></h2>
-      <p id="ownerName"></p>
-      <p id="contact"></p>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat">
-      <strong id="prodCount">0</strong><br>Produits
-    </div>
-    <div class="stat">
-      <strong id="likeCount">0</strong><br>Likes
-    </div>
-    <div class="stat">
-      <strong id="sellCount">0</strong><br>Ventes
-    </div>
-  </div>
-
-  <button class="btn" id="contactBtn">
-    <i class="fas fa-comment"></i> Contacter le vendeur
-  </button>
-
-  <!-- PRODUITS -->
-  <div class="products">
-    <h3>Produits du vendeur</h3>
-    <div id="productList"></div>
-  </div>
-
+<div class="profile">
+  <img id="avatar">
+  <h2 id="name"></h2>
+  <p id="phone"></p>
 </div>
+
+<div class="products" id="products"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-const firebaseConfig = {
+const app = initializeApp({
   apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
   databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
   projectId:"collibri-buisiness"
-};
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
 const vendeurId = new URLSearchParams(location.search).get("id");
 
-const avatar = document.getElementById("avatar");
-const businessName = document.getElementById("businessName");
-const ownerName = document.getElementById("ownerName");
-const contact = document.getElementById("contact");
-const contactBtn = document.getElementById("contactBtn");
-
-const productList = document.getElementById("productList");
-const prodCount = document.getElementById("prodCount");
-
 async function load(){
-  /* VENDEUR */
-  const userSnap = await get(ref(db,"users/"+vendeurId));
-  if(userSnap.exists()){
-    const u = userSnap.val();
-    avatar.src = u.avatarBase64 || "";
-    businessName.textContent = u.business || "Boutique";
-    ownerName.textContent = "Vendeur : " + (u.nom || "");
-    contact.textContent = u.phone || u.email || "";
-    if(u.phone){
-      contactBtn.onclick = ()=>location.href=`tel:${u.phone}`;
-    }
+  const u = await get(ref(db,"users/"+vendeurId));
+  if(u.exists()){
+    avatar.src=u.val().avatarBase64||"";
+    name.textContent=u.val().business||u.val().nom;
+    phone.textContent=u.val().phone||"";
   }
 
-  /* PRODUITS */
-  const prodSnap = await get(ref(db,"produits"));
-  let count = 0;
-  if(prodSnap.exists()){
-    Object.entries(prodSnap.val()).forEach(([id,p])=>{
-      if(p.vendeurId === vendeurId){
-        count++;
-        const div = document.createElement("div");
-        div.className="card";
-        div.innerHTML=`
-          <img src="${p.image}">
-          <strong>${p.nom}</strong><br>
-          ${p.prix} USD
-        `;
-        div.onclick=()=>location.href=`produit.html?id=${id}`;
-        productList.appendChild(div);
-      }
-    });
+  const p = await get(ref(db,"produits"));
+  if(p.exists()){
+    Object.entries(p.val())
+      .filter(([_,v])=>v.vendeurId===vendeurId)
+      .forEach(([id,v])=>{
+        const d=document.createElement("div");
+        d.className="card";
+        d.innerHTML=`<img src="${v.image}"><div>${v.nom}</div>`;
+        d.onclick=()=>location.href=`produit.html?id=${id}`;
+        products.appendChild(d);
+      });
   }
-  prodCount.textContent = count;
 }
-
 load();
 </script>
 
