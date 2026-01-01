@@ -8,8 +8,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <!-- Google AdSense -->
-<script data-ad-client="ca-pub-6556731339911291" async
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6556731339911291"
+     crossorigin="anonymous"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
@@ -35,6 +35,13 @@ header{
   padding:10px;
   border-radius:8px;
   border:1px solid #ccc;
+}
+
+/* PUB BANNER */
+.ad-banner{
+  margin:12px auto;
+  display:block;
+  text-align:center;
 }
 
 /* GRID */
@@ -67,16 +74,6 @@ header{
 .card .price{
   color:#1E40AF;
   font-size:13px;
-}
-
-/* PUB AD CARD */
-.ad-card{
-  grid-column:span 2;
-  text-align:center;
-  padding:8px;
-  background:#f8fafc;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.05);
 }
 
 /* FAB */
@@ -123,7 +120,31 @@ header{
   </select>
 </div>
 
+<!-- PUB EN HAUT -->
+<div class="ad-banner">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-6556731339911291"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
+
 <div class="products" id="products"></div>
+
+<!-- PUB EN BAS -->
+<div class="ad-banner">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-6556731339911291"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
 
 <div class="fab" onclick="location.href='vente.html'">
   <i class="fas fa-plus"></i>
@@ -162,21 +183,7 @@ onValue(ref(db,"produits"),snap=>{
 
 function render(list){
   productsEl.innerHTML="";
-  list.forEach((p,index)=>{
-    // INSERER PUB CHAQUE 4 PRODUITS
-    if(index>0 && index%4===0){
-      const adDiv = document.createElement("div");
-      adDiv.className="ad-card";
-      adDiv.innerHTML=`
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-      `;
-      productsEl.appendChild(adDiv);
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    }
-
+  list.forEach(p=>{
     const div=document.createElement("div");
     div.className="card";
     div.innerHTML=`
