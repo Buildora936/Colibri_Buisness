@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#e6f0ff;
+  color:#1E3A8A;
+}
+
+/* HEADER */
+header{
+  background:#1E3A8A;
+  color:white;
+  padding:18px;
+  text-align:center;
+}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;font-size:14px;opacity:.9}
+
+/* HERO */
+.hero{
+  padding:24px 16px;
+  text-align:center;
+}
+.hero h2{
+  font-size:22px;
+  margin-bottom:10px;
+}
+.hero p{
+  font-size:15px;
+  color:#1e40af;
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:14px;
+  padding:20px;
+}
+.actions button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  color:white;
+}
+.buy{background:#1E40AF}
+.sell{background:#2563EB}
+
+/* FEATURES */
+.features{
+  padding:20px;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+.feature{
+  background:white;
+  border-radius:14px;
+  padding:16px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.feature i{
+  font-size:26px;
+  color:#1E3A8A;
+  margin-bottom:8px;
+}
+.feature span{
+  display:block;
+  font-size:14px;
+  font-weight:bold;
+}
+
+/* FOOTER MENU */
+.menu{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#1E3A8A;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+}
+.menu a{color:white;font-size:20px}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Colibri Business</h1>
+  <p>Ton business, simplement et professionnellement</p>
+</header>
+
+<section class="hero">
+  <h2>Vends et achète facilement</h2>
+  <p>Une plateforme pensée pour les entrepreneurs modernes</p>
+</section>
+
+<section class="actions">
+  <button class="buy" onclick="location.href='achat.html'">
+    <i class="fas fa-store"></i> Acheter
+  </button>
+  <button class="sell" onclick="location.href='vente.html'">
+    <i class="fas fa-plus-circle"></i> Vendre
+  </button>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <i class="fas fa-box"></i>
+    <span>Produits réels</span>
+  </div>
+  <div class="feature">
+    <i class="fas fa-user-tie"></i>
+    <span>Vendeurs vérifiés</span>
+  </div>
+  <div class="feature">
+    <i class="fas fa-chart-line"></i>
+    <span>Suivi & statistiques</span>
+  </div>
+  <div class="feature">
+    <i class="fas fa-shield-alt"></i>
+    <span>Sécurité & confiance</span>
+  </div>
+</section>
+
+<nav class="menu">
+  <a href="index.html"><i class="fas fa-home"></i></a>
+  <a href="achat.html"><i class="fas fa-store"></i></a>
+  <a href="commande.html"><i class="fas fa-box"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="profil.html"><i class="fas fa-user"></i></a>
+</nav>
+
+</body>
+</html>
