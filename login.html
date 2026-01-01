@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Connexion - Colibri Business</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#e6f0ff;
+}
+.container{
+  max-width:360px;
+  margin:40px auto;
+  background:white;
+  padding:24px;
+  border-radius:16px;
+}
+h2{text-align:center;color:#1E3A8A}
+input{
+  width:100%;
+  padding:12px;
+  margin-top:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:16px;
+  border:none;
+  border-radius:12px;
+  background:#1E3A8A;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+.google{
+  background:#ef4444;
+}
+small{display:block;text-align:center;margin-top:12px}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Connexion</h2>
+
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Mot de passe">
+
+  <button onclick="login()">Se connecter</button>
+
+  <button class="google" onclick="loginGoogle()">Continuer avec Google</button>
+
+  <small>
+    Sécurité renforcée • Données protégées • Accès privé
+  </small>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+  authDomain:"collibri-buisiness.firebaseapp.com",
+  projectId:"collibri-buisiness"
+});
+const auth = getAuth(app);
+
+window.login = async ()=>{
+  try{
+    const email=email.value;
+    const password=password.value;
+    const user=await signInWithEmailAndPassword(auth,email,password);
+    localStorage.setItem("uid",user.user.uid);
+    location.href="profil.html";
+  }catch(e){
+    alert("Erreur de connexion");
+  }
+};
+
+window.loginGoogle = async ()=>{
+  const provider=new GoogleAuthProvider();
+  const res=await signInWithPopup(auth,provider);
+  localStorage.setItem("uid",res.user.uid);
+  location.href="profil.html";
+};
+
+onAuthStateChanged(auth,user=>{
+  if(user){
+    localStorage.setItem("uid",user.uid);
+    location.href="profil.html";
+  }
+});
+</script>
+
+</body>
+</html>
