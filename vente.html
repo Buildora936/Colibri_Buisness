@@ -4,144 +4,177 @@
 <meta charset="UTF-8">
 <title>Vente - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Google AdSense -->
+<script data-ad-client="ca-pub-6556731339911291" async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
-
-header{
-  background:#1E3A8A;
-  color:white;
-  padding:14px;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold
-}
-
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
 .container{padding:16px}
 
-label{font-weight:bold;color:#1E3A8A;margin-top:12px;display:block}
-input,textarea{
+/* FORMULAIRE PRODUIT */
+.form-group{margin-bottom:12px}
+.form-group label{display:block;margin-bottom:4px;color:#1E3A8A;font-weight:bold}
+.form-group input, .form-group textarea{
   width:100%;
-  padding:12px;
+  padding:10px;
   border-radius:10px;
   border:1px solid #ccc;
-  margin-top:6px
 }
 
-textarea{resize:none;height:100px}
-
-.upload-box{
-  background:white;
-  border:2px dashed #1E3A8A;
-  border-radius:12px;
-  padding:16px;
-  text-align:center;
-  margin-top:8px
+/* BOUTON PUBLIER */
+#btnPublier{
+  background:#1E40AF;color:white;border:none;padding:12px 20px;border-radius:12px;cursor:pointer;font-size:16px;
+  margin-top:12px;
 }
 
-button{
-  width:100%;
+/* PUB BANNER */
+.ad-banner{
+margin:16px 0;
+text-align:center;
+}
+
+/* LISTE PRODUITS */
+.my-products{
   margin-top:20px;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:#1E3A8A;
-  color:white;
-  font-size:16px;
-  cursor:pointer
 }
+.my-products .card{
+  background:white;border-radius:12px;padding:12px;margin-bottom:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;
+}
+.my-products img{width:100%;border-radius:12px}
+.my-products .name{font-weight:bold;color:#1E3A8A;margin-top:6px}
+.my-products .price{color:#1E40AF;font-size:14px}
 
-.option{
-  margin-top:14px;
+/* MENU */
+.menu{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#1E3A8A;
   display:flex;
-  align-items:center;
-  gap:8px
+  justify-content:space-around;
+  padding:10px 0;
 }
+.menu a{color:white;font-size:20px}
 </style>
 </head>
 
 <body>
-
-<header>Publier un produit</header>
+<header>Mes Produits en Vente</header>
 
 <div class="container">
 
-<label>Nom du produit</label>
-<input id="nom" placeholder="Ex : Smartphone Samsung">
+  <!-- FORMULAIRE AJOUT PRODUIT -->
+  <div class="form-group">
+    <label>Nom du produit</label>
+    <input type="text" id="prodNom" placeholder="Nom du produit">
+  </div>
+  <div class="form-group">
+    <label>Description</label>
+    <textarea id="prodDesc" placeholder="Description du produit"></textarea>
+  </div>
+  <div class="form-group">
+    <label>Prix (USD)</label>
+    <input type="number" id="prodPrix" placeholder="Prix">
+  </div>
+  <div class="form-group">
+    <label>Image URL</label>
+    <input type="text" id="prodImageUrl" placeholder="Lien de l'image">
+  </div>
+  <button id="btnPublier">Publier le produit</button>
 
-<label>Description</label>
-<textarea id="desc" placeholder="Décrivez votre produit"></textarea>
+  <!-- PUB BANNER -->
+  <div class="ad-banner">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
-<label>Prix (USD)</label>
-<input id="prix" type="number" placeholder="Ex : 120">
-
-<label>Images du produit (plusieurs)</label>
-<div class="upload-box">
-  <input type="file" id="images" accept="image/*" multiple>
-  <small>Vous pouvez sélectionner plusieurs images</small>
+  <!-- LISTE DES PRODUITS -->
+  <div class="my-products" id="myProducts"></div>
 </div>
 
-<label>Vidéo du produit (optionnel)</label>
-<div class="upload-box">
-  <input type="file" id="video" accept="video/*">
-</div>
-
-<div class="option">
-  <input type="checkbox" id="sponsor">
-  <label for="sponsor">Sponsoriser ce produit (plus tard)</label>
-</div>
-
-<button onclick="publier()">Publier le produit</button>
-
-</div>
+<nav class="menu">
+  <a href="achat.html"><i class="fas fa-store"></i></a>
+  <a href="commande.html"><i class="fas fa-box"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="profil.html"><i class="fas fa-user"></i></a>
+</nav>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, push, get, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+  authDomain:"collibri-buisiness.firebaseapp.com",
   databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
   projectId:"collibri-buisiness"
 });
+
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-const uid = localStorage.getItem("uid") || "public";
+const prodNom = document.getElementById("prodNom");
+const prodDesc = document.getElementById("prodDesc");
+const prodPrix = document.getElementById("prodPrix");
+const prodImageUrl = document.getElementById("prodImageUrl");
+const btnPublier = document.getElementById("btnPublier");
+const myProducts = document.getElementById("myProducts");
 
-function toBase64(file){
-  return new Promise(res=>{
-    const r=new FileReader();
-    r.onload=()=>res(r.result);
-    r.readAsDataURL(file);
-  });
+let uid = null;
+
+// Vérifier connexion
+onAuthStateChanged(auth,user=>{
+  if(user) uid=user.uid;
+  else location.href='auth.html';
+});
+
+// Publier produit
+btnPublier.onclick = async ()=>{
+  if(!prodNom.value||!prodPrix.value||!prodImageUrl.value){ alert("Veuillez remplir tous les champs"); return; }
+  const newProd = {
+    nom:prodNom.value,
+    desc:prodDesc.value,
+    prix:Number(prodPrix.value),
+    image:prodImageUrl.value,
+    vendeurId:uid,
+    createdAt:Date.now()
+  };
+  await push(ref(db,"produits"),newProd);
+  prodNom.value=prodDesc.value=prodPrix.value=prodImageUrl.value="";
+  loadMyProducts();
+};
+
+// Charger mes produits
+async function loadMyProducts(){
+  if(!uid) return;
+  const snap = await get(ref(db,"produits"));
+  myProducts.innerHTML="";
+  if(snap.exists()){
+    Object.entries(snap.val()).forEach(([id,p])=>{
+      if(p.vendeurId===uid){
+        const div = document.createElement("div");
+        div.className="card";
+        div.innerHTML = `<img src="${p.image}"><div class="name">${p.nom}</div><div class="price">${p.prix} USD</div>`;
+        div.onclick = ()=>location.href=`produit.html?id=${id}`;
+        myProducts.appendChild(div);
+      }
+    });
+  }
 }
 
-window.publier = async ()=>{
-  const nom=nom.value.trim();
-  const desc=desc.value.trim();
-  const prix=prix.value;
-  if(!nom||!prix){alert("Nom et prix obligatoires");return;}
-
-  const imgs=[];
-  for(const f of images.files){
-    imgs.push(await toBase64(f));
-  }
-
-  let video64="";
-  if(video.files[0]) video64=await toBase64(video.files[0]);
-
-  await push(ref(db,"produits"),{
-    nom,desc,prix,
-    images:imgs,
-    video:video64,
-    vendeurId:uid,
-    sponsor:sponsor.checked,
-    createdAt:Date.now()
-  });
-
-  alert("✅ Produit publié avec succès");
-  location.href="achat.html";
-};
+loadMyProducts();
 </script>
 
 </body>
