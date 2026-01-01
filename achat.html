@@ -110,7 +110,15 @@ header{
 
 <header>Produits</header>
 
-<!-- PUB BANNER -->
+
+<div class="search-bar">
+  <input id="search" placeholder="Rechercher produit...">
+  <select id="filter">
+    <option value="all">Tous</option>
+    <option value="low">Prix bas</option>
+    <option value="high">Prix élevé</option>
+  </select>
+</div>
 <div class="ad-container">
   <ins class="adsbygoogle"
        style="display:block"
@@ -121,16 +129,6 @@ header{
        (adsbygoogle = window.adsbygoogle || []).push({});
   </script>
 </div>
-
-<div class="search-bar">
-  <input id="search" placeholder="Rechercher produit...">
-  <select id="filter">
-    <option value="all">Tous</option>
-    <option value="low">Prix bas</option>
-    <option value="high">Prix élevé</option>
-  </select>
-</div>
-
 <div class="products" id="products"></div>
 
 <div class="fab" onclick="location.href='vente.html'">
