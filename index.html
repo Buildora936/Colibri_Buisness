@@ -5,6 +5,10 @@
 <title>Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google-adsense-account" content="ca-pub-6556731339911291">
+
+<!-- Google AdSense -->
+<script data-ad-client="ca-pub-6556731339911291" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
@@ -91,6 +95,7 @@ header h1{
   padding:16px;
   border-radius:14px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
+  text-align:center;
 }
 
 .feature i{
@@ -123,6 +128,12 @@ header h1{
   color:white;
   font-size:20px;
 }
+
+/* AD BLOCK */
+.ad-container{
+  margin:20px auto;
+  text-align:center;
+}
 </style>
 </head>
 
@@ -147,6 +158,17 @@ header h1{
     Voir les produits
   </button>
 </section>
+
+<!-- AD SENSE -->
+<div class="ad-container">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
 
 <section class="features">
   <div class="feature">
@@ -193,18 +215,18 @@ const db = getDatabase(app);
 const startBtn = document.getElementById("startBtn");
 const avatar = document.getElementById("avatar");
 
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async user => {
   if(user){
-    startBtn.style.display="none";
-    avatar.style.display="block";
+    startBtn.style.display = "none";
+    avatar.style.display = "block";
 
     const snap = await get(ref(db,"users/"+user.uid));
     if(snap.exists()){
       avatar.src = snap.val().avatarBase64 || "";
     }
   }else{
-    startBtn.style.display="block";
-    avatar.style.display="none";
+    startBtn.style.display = "block";
+    avatar.style.display = "none";
   }
 });
 </script>
