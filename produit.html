@@ -5,49 +5,26 @@
 <title>Produit - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Google AdSense -->
+<script data-ad-client="ca-pub-6556731339911291" async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
 header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
 .container{padding:16px}
-.seller{
-display:flex;
-align-items:center;
-gap:10px;
-margin-bottom:12px
-}
-.seller img{
-width:46px;height:46px;
-border-radius:50%;
-object-fit:cover;
-background:#c7d2fe;
-cursor:pointer;
-}
-.seller span{
-font-weight:bold;
-color:#1E3A8A;
-cursor:pointer;
-}
+.seller{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.seller img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#c7d2fe;cursor:pointer}
+.seller span{font-weight:bold;color:#1E3A8A;cursor:pointer}
 
 .prod-image{width:100%;border-radius:12px;margin-bottom:16px}
 .prod-name{font-size:22px;color:#1E3A8A;margin-bottom:8px}
 .prod-price{font-weight:bold;color:#1E40AF;margin-bottom:12px}
 .prod-desc{margin-bottom:16px}
 
-.actions{
-display:flex;
-flex-wrap:wrap;
-gap:12px;
-margin-bottom:20px
-}
-.actions button{
-flex:1;
-padding:12px;
-border:none;
-border-radius:12px;
-font-size:16px;
-color:white;
-cursor:pointer
-}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.actions button{flex:1;padding:12px;border:none;border-radius:12px;font-size:16px;color:white;cursor:pointer}
 #favBtn{background:#25D366}
 #favBtn.red{background:red}
 #shareBtn{background:#3b82f6}
@@ -55,94 +32,54 @@ cursor:pointer
 #btnCommander{background:#1E40AF}
 #msg{width:100%;margin-top:10px;color:green;font-weight:bold}
 
-.comment-list{
-margin-top:12px;
-display:flex;
-flex-direction:column;
-gap:10px;
-max-height:300px;
-overflow-y:auto;
-}
-
-.comment{
-background:white;
-padding:10px 14px;
-border-radius:12px;
-box-shadow:0 2px 6px rgba(0,0,0,0.08);
-display:flex;
-align-items:flex-start;
-gap:10px;
-}
-
-.comment-user img{
-width:36px;
-height:36px;
-border-radius:50%;
-object-fit:cover;
-background:#c7d2fe;
-}
-
-.comment-user span{
-font-weight:bold;
-color:#1E3A8A;
-}
-
-.comment-text{
-margin-top:4px;
-color:#333;
-word-wrap:break-word;
-flex:1;
-}
-
-.comment-form{
-display:flex;
-gap:8px;
-margin-top:12px;
-}
-
-.comment-form input{
-flex:1;
-padding:10px;
-border-radius:12px;
-border:1px solid #ccc;
-}
-
-.comment-form button{
-background:#1E40AF;
-color:white;
-border:none;
-padding:10px 16px;
-border-radius:12px;
-cursor:pointer;
-transition:0.2s;
-}
-
-.comment-form button:hover{
-background:#2563eb;
-}
+.comment-list{margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:300px;overflow-y:auto}
+.comment{background:white;padding:10px 14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.08);display:flex;align-items:flex-start;gap:10px}
+.comment-user img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#c7d2fe}
+.comment-user span{font-weight:bold;color:#1E3A8A}
+.comment-text{margin-top:4px;color:#333;word-wrap:break-word;flex:1}
+.comment-form{display:flex;gap:8px;margin-top:12px}
+.comment-form input{flex:1;padding:10px;border-radius:12px;border:1px solid #ccc}
+.comment-form button{background:#1E40AF;color:white;border:none;padding:10px 16px;border-radius:12px;cursor:pointer;transition:0.2s}
+.comment-form button:hover{background:#2563eb}
 
 .other-products{margin-top:20px}
 .other-products h3{color:#1E3A8A}
-.other-products .card{
-background:white;border-radius:12px;padding:12px;margin-bottom:12px;
-box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;
-}
+.other-products .card{background:white;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer}
 .other-products img{width:100%;border-radius:12px}
+
+/* PUB AD */
+.ad-container{margin:10px auto;text-align:center}
 </style>
 </head>
 <body>
+
 <header>Produit</header>
 <div class="container">
+
   <!-- Vendeur -->
   <div class="seller">
     <img id="sellerAvatar">
     <span id="sellerName"></span>
   </div>
+
   <!-- Produit -->
   <img id="prodImage" class="prod-image">
   <div class="prod-name" id="prodName"></div>
   <div class="prod-price" id="prodPrice"></div>
   <div class="prod-desc" id="prodDesc"></div>
+
+  <!-- PUB BANNER -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="horizontal"
+         data-ad-layout="in-article"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
   <!-- Actions -->
   <div class="actions">
     <button id="favBtn"><i class="fas fa-heart"></i> <span id="likeCount">0</span></button>
@@ -151,6 +88,7 @@ box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;
     <button id="btnCommander">Commander</button>
     <div id="msg"></div>
   </div>
+
   <!-- Commentaires -->
   <div class="comments">
     <h3>Commentaires</h3>
@@ -160,6 +98,7 @@ box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;
       <button id="commentBtn">Envoyer</button>
     </div>
   </div>
+
   <!-- Autres produits du vendeur -->
   <div class="other-products">
     <h3>Autres produits de ce vendeur</h3>
