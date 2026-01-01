@@ -2,95 +2,143 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Vendeur</title>
+<title>Vendeur - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Google AdSense -->
+<script data-ad-client="ca-pub-6556731339911291" async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#e6f0ff}
-header{background:#1E3A8A;color:white;padding:16px;text-align:center}
-.profile{
-  background:white;
-  margin:16px;
-  padding:16px;
-  border-radius:12px;
+header{padding:16px;background:#1E3A8A;color:white;text-align:center;font-size:22px;font-weight:bold}
+.container{padding:16px}
+
+/* PROFIL VENDEUR */
+.vendor-info{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+.vendor-info img{
+  width:60px;height:60px;border-radius:50%;object-fit:cover;background:#c7d2fe;
+}
+.vendor-info div{
+  display:flex;
+  flex-direction:column;
+}
+.vendor-info div span{
+  font-weight:bold;color:#1E3A8A;
+}
+.vendor-info div p{
+  color:#334155;
+  font-size:14px;
+  margin:2px 0 0;
+}
+
+/* PUB BANNER */
+.ad-banner{
+  margin:16px 0;
   text-align:center;
 }
-.profile img{
-  width:80px;height:80px;
-  border-radius:50%;
-  object-fit:cover;
-}
-.profile h2{color:#1E3A8A}
 
+/* PRODUITS DU VENDEUR */
 .products{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   gap:12px;
-  padding:16px;
+  margin-top:16px;
 }
 .card{
   background:white;
   border-radius:12px;
   padding:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
   cursor:pointer;
 }
 .card img{
   width:100%;
-  height:110px;
+  height:120px;
   object-fit:cover;
   border-radius:10px;
 }
+.card .name{
+  font-weight:bold;color:#1E3A8A;margin-top:6px;font-size:14px;
+}
+.card .price{
+  color:#1E40AF;font-size:13px;
+}
+
+/* MENU */
+.menu{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#1E3A8A;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+}
+.menu a{color:white;font-size:20px}
 </style>
 </head>
 
 <body>
-
 <header>Vendeur</header>
 
-<div class="profile">
-  <img id="avatar">
-  <h2 id="name"></h2>
-  <p id="phone"></p>
+<div class="container">
+  <!-- Infos vendeur -->
+  <div class="vendor-info">
+    <img id="vendorAvatar" src="">
+    <div>
+      <span id="vendorName">Nom du vendeur</span>
+      <p id="vendorBio">Bio ou description du vendeur...</p>
+    </div>
+  </div>
+
+  <!-- PUB BANNER -->
+  <div class="ad-banner">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+
+  <!-- Produits du vendeur -->
+  <h3>Produits de ce vendeur</h3>
+  <div class="products" id="products"></div>
 </div>
 
-<div class="products" id="products"></div>
+<nav class="menu">
+  <a href="achat.html"><i class="fas fa-store"></i></a>
+  <a href="commande.html"><i class="fas fa-box"></i></a>
+  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
+  <a href="profil.html"><i class="fas fa-user"></i></a>
+</nav>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-const app = initializeApp({
+const firebaseConfig = {
   apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
+  authDomain:"collibri-buisiness.firebaseapp.com",
   databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
   projectId:"collibri-buisiness"
-});
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const vendeurId = new URLSearchParams(location.search).get("id");
 
-async function load(){
-  const u = await get(ref(db,"users/"+vendeurId));
-  if(u.exists()){
-    avatar.src=u.val().avatarBase64||"";
-    name.textContent=u.val().business||u.val().nom;
-    phone.textContent=u.val().phone||"";
-  }
+const urlParams = new URLSearchParams(location.search);
+const vendorId = urlParams.get("id");
 
-  const p = await get(ref(db,"produits"));
-  if(p.exists()){
-    Object.entries(p.val())
-      .filter(([_,v])=>v.vendeurId===vendeurId)
-      .forEach(([id,v])=>{
-        const d=document.createElement("div");
-        d.className="card";
-        d.innerHTML=`<img src="${v.image}"><div>${v.nom}</div>`;
-        d.onclick=()=>location.href=`produit.html?id=${id}`;
-        products.appendChild(d);
-      });
-  }
-}
-load();
-</script>
-
-</body>
-</html>
+const vendorAvatar = document.getElementById("vendorAvatar");
+const vendorName = document.getElementById("vendorName");
+const vendorBio =
