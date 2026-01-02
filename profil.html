@@ -2,155 +2,67 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Mon Profil - Colibri Business</title>
+<title>Profil - Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
-  font-family:Arial, sans-serif;
+  font-family:Arial;
   background:#e6f0ff;
 }
-
 header{
   background:#1E3A8A;
   color:white;
   padding:16px;
   text-align:center;
   font-size:20px;
-  font-weight:bold;
 }
-
 .container{
   padding:16px;
-  max-width:520px;
-  margin:auto;
 }
-
-.card{
-  background:white;
-  padding:20px;
-  border-radius:16px;
-  box-shadow:0 4px 12px rgba(0,0,0,.1);
-}
-
-.avatar-box{
-  text-align:center;
-  margin-bottom:20px;
-}
-
-.avatar-box img{
-  width:110px;
-  height:110px;
+.avatar{
+  width:100px;
+  height:100px;
   border-radius:50%;
   object-fit:cover;
   background:#c7d2fe;
-}
-
-.avatar-box input{
-  display:none;
-}
-
-.avatar-box label{
-  display:inline-block;
-  margin-top:10px;
-  color:#1E3A8A;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.group{
-  margin-bottom:14px;
-}
-
-.group label{
+  margin:auto;
   display:block;
-  font-size:14px;
-  margin-bottom:6px;
-  color:#1E3A8A;
-  font-weight:bold;
 }
-
-.group input,
-.group textarea{
+input{
   width:100%;
   padding:12px;
-  border-radius:12px;
+  margin-top:12px;
+  border-radius:10px;
   border:1px solid #ccc;
-  font-size:14px;
 }
-
-textarea{
-  resize:none;
-}
-
 button{
+  margin-top:20px;
   width:100%;
   padding:14px;
-  border:none;
-  border-radius:14px;
   background:#1E3A8A;
   color:white;
+  border:none;
+  border-radius:12px;
   font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-#msg{
-  text-align:center;
-  margin-top:12px;
-  font-weight:bold;
-  color:green;
 }
 </style>
 </head>
 
 <body>
 
-<header>Mon Profil</header>
+<header>Mon profil</header>
 
 <div class="container">
-  <div class="card">
+  <img id="avatar" class="avatar">
 
-    <!-- Avatar -->
-    <div class="avatar-box">
-      <img id="avatarPreview">
-      <br>
-      <label for="avatarInput">Changer la photo</label>
-      <input type="file" id="avatarInput" accept="image/*">
-    </div>
+  <input type="file" id="photo">
+  <input id="nom" placeholder="Nom complet">
+  <input id="business" placeholder="Nom vendeur / business">
+  <input id="phone" placeholder="Téléphone">
 
-    <!-- Infos -->
-    <div class="group">
-      <label>Nom complet</label>
-      <input id="nom" placeholder="Ex: Jean Pierre">
-    </div>
-
-    <div class="group">
-      <label>Nom vendeur / Business</label>
-      <input id="business" placeholder="Ex: JP Store">
-    </div>
-
-    <div class="group">
-      <label>Email</label>
-      <input id="email" disabled>
-    </div>
-
-    <div class="group">
-      <label>Téléphone</label>
-      <input id="phone" placeholder="+509...">
-    </div>
-
-    <div class="group">
-      <label>Description</label>
-      <textarea id="desc" rows="3" placeholder="Parle de ton activité..."></textarea>
-    </div>
-
-    <button id="saveBtn">Enregistrer</button>
-    <div id="msg"></div>
-
-  </div>
+  <button id="save">Enregistrer</button>
 </div>
 
 <script type="module">
@@ -168,28 +80,21 @@ const app = initializeApp({
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const avatarInput = document.getElementById("avatarInput");
-const avatarPreview = document.getElementById("avatarPreview");
+const avatar = document.getElementById("avatar");
+const photo = document.getElementById("photo");
 const nom = document.getElementById("nom");
 const business = document.getElementById("business");
-const email = document.getElementById("email");
 const phone = document.getElementById("phone");
-const desc = document.getElementById("desc");
-const saveBtn = document.getElementById("saveBtn");
-const msg = document.getElementById("msg");
 
 let uid = null;
 let avatarBase64 = "";
 
-/* Vérifier connexion */
 onAuthStateChanged(auth, async user=>{
   if(!user){
     location.href="auth.html";
     return;
   }
-
   uid = user.uid;
-  email.value = user.email || "";
 
   const snap = await get(ref(db,"users/"+uid));
   if(snap.exists()){
@@ -197,54 +102,29 @@ onAuthStateChanged(auth, async user=>{
     nom.value = u.nom || "";
     business.value = u.business || "";
     phone.value = u.phone || "";
-    desc.value = u.desc || "";
+    avatar.src = u.avatarBase64 || "";
     avatarBase64 = u.avatarBase64 || "";
-    avatarPreview.src = avatarBase64 || "https://via.placeholder.com/110";
-  }else{
-    avatarPreview.src = "https://via.placeholder.com/110";
   }
 });
 
-/* Avatar */
-avatarInput.onchange = ()=>{
-  const file = avatarInput.files[0];
-  if(!file) return;
-
-  if(file.size > 750 * 1024){
-    alert("Image trop lourde (max 750 KB)");
-    return;
-  }
-
+photo.onchange = e=>{
+  const file = e.target.files[0];
   const reader = new FileReader();
-  reader.onload = e=>{
-    avatarBase64 = e.target.result;
-    avatarPreview.src = avatarBase64;
+  reader.onload = ()=> {
+    avatar.src = reader.result;
+    avatarBase64 = reader.result;
   };
   reader.readAsDataURL(file);
 };
 
-/* Sauvegarde */
-saveBtn.onclick = async ()=>{
-  if(!nom.value || !business.value){
-    alert("Nom et nom vendeur sont obligatoires");
-    return;
-  }
-
+document.getElementById("save").onclick = async ()=>{
   await set(ref(db,"users/"+uid),{
     nom: nom.value,
     business: business.value,
-    email: email.value,
     phone: phone.value,
-    desc: desc.value,
-    avatarBase64,
-    updatedAt: Date.now()
+    avatarBase64
   });
-
-  localStorage.setItem("username", business.value);
-  localStorage.setItem("avatarBase64", avatarBase64);
-  localStorage.setItem("uid", uid);
-
-  msg.textContent = "✅ Profil enregistré";
+  alert("Profil enregistré");
 };
 </script>
 
