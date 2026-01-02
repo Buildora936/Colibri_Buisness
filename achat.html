@@ -7,12 +7,12 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Google AdSense -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6556731339911291"
-     crossorigin="anonymous"></script>
-
 <style>
-body{margin:0;font-family:Arial;background:#e6f0ff}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#e6f0ff;
+}
 
 /* HEADER */
 header{
@@ -21,6 +21,7 @@ header{
   padding:14px;
   text-align:center;
   font-size:20px;
+  font-weight:bold;
 }
 
 /* SEARCH */
@@ -30,38 +31,39 @@ header{
   padding:10px;
   background:white;
 }
-.search-bar input, .search-bar select{
+.search-bar input,
+.search-bar select{
   flex:1;
   padding:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-/* ADS */
-.ad-banner{
-  margin:12px;
+  border-radius:10px;
+  border:1px solid #cbd5e1;
+  font-size:14px;
 }
 
 /* GRID */
 .products{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
   gap:12px;
   padding:12px;
 }
 
 .card{
   background:white;
-  border-radius:12px;
+  border-radius:14px;
   padding:8px;
   box-shadow:0 2px 6px rgba(0,0,0,.08);
   cursor:pointer;
+  transition:.2s;
+}
+.card:hover{
+  transform:translateY(-2px);
 }
 .card img{
   width:100%;
-  height:120px;
+  height:140px;
   object-fit:cover;
-  border-radius:10px;
+  border-radius:12px;
 }
 .card .name{
   font-weight:bold;
@@ -77,9 +79,10 @@ header{
 /* FAB */
 .fab{
   position:fixed;
-  bottom:70px;
-  right:20px;
-  width:56px;height:56px;
+  bottom:80px;
+  right:18px;
+  width:56px;
+  height:56px;
   background:#1E3A8A;
   color:white;
   border-radius:50%;
@@ -101,16 +104,19 @@ header{
   justify-content:space-around;
   padding:10px 0;
 }
-.menu a{color:white;font-size:20px}
+.menu a{
+  color:white;
+  font-size:20px;
+}
 </style>
 </head>
 
 <body>
 
-<header>Marketplace</header>
+<header>Produits</header>
 
 <div class="search-bar">
-  <input id="search" placeholder="Rechercher produit...">
+  <input id="search" placeholder="Rechercher un produit...">
   <select id="filter">
     <option value="all">Tous</option>
     <option value="low">Prix bas</option>
@@ -118,42 +124,16 @@ header{
   </select>
 </div>
 
-<!-- PUB EN HAUT -->
-<div class="ad-banner">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-6556731339911291"
-       data-ad-slot="7639068783"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
-
 <div class="products" id="products"></div>
-
-<!-- PUB EN BAS -->
-<div class="ad-banner">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-6556731339911291"
-       data-ad-slot="7639068783"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
 
 <div class="fab" onclick="location.href='vente.html'">
   <i class="fas fa-plus"></i>
 </div>
 
 <nav class="menu">
+  <a href="index.html"><i class="fas fa-home"></i></a>
   <a href="achat.html"><i class="fas fa-store"></i></a>
   <a href="commande.html"><i class="fas fa-box"></i></a>
-  <a href="statistiques.html"><i class="fas fa-chart-line"></i></a>
   <a href="profil.html"><i class="fas fa-user"></i></a>
 </nav>
 
@@ -161,6 +141,7 @@ header{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
+/* Firebase */
 const app = initializeApp({
   apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
   databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
@@ -168,21 +149,30 @@ const app = initializeApp({
 });
 
 const db = getDatabase(app);
+
+/* Elements */
 const productsEl = document.getElementById("products");
 const search = document.getElementById("search");
 const filter = document.getElementById("filter");
 
 let allProducts = [];
 
-onValue(ref(db,"produits"),snap=>{
+/* Load products */
+onValue(ref(db,"produits"), snap=>{
   allProducts = snap.exists()
     ? Object.entries(snap.val()).map(([id,p])=>({...p,id}))
     : [];
-  render(allProducts);
+  applyFilters();
 });
 
+/* Render */
 function render(list){
   productsEl.innerHTML="";
+  if(list.length===0){
+    productsEl.innerHTML="<p style='text-align:center;width:100%'>Aucun produit</p>";
+    return;
+  }
+
   list.forEach(p=>{
     const div=document.createElement("div");
     div.className="card";
@@ -196,15 +186,23 @@ function render(list){
   });
 }
 
-search.oninput=()=>apply();
-filter.onchange=()=>apply();
+/* Filters */
+search.oninput = applyFilters;
+filter.onchange = applyFilters;
 
-function apply(){
+function applyFilters(){
   let list=[...allProducts];
-  const q=search.value.toLowerCase();
-  if(q) list=list.filter(p=>p.nom.toLowerCase().includes(q));
-  if(filter.value==="low") list.sort((a,b)=>a.prix-b.prix);
-  if(filter.value==="high") list.sort((a,b)=>b.prix-a.prix);
+  const q = search.value.toLowerCase();
+
+  if(q){
+    list = list.filter(p=>p.nom.toLowerCase().includes(q));
+  }
+  if(filter.value==="low"){
+    list.sort((a,b)=>a.prix-b.prix);
+  }
+  if(filter.value==="high"){
+    list.sort((a,b)=>b.prix-a.prix);
+  }
   render(list);
 }
 </script>
