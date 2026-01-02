@@ -2,19 +2,26 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Inscription - Colibri Business</title>
+<title>Créer un compte – Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body{margin:0;font-family:Arial;background:#e6f0ff}
-.container{
-  max-width:360px;
-  margin:40px auto;
+body{
+  margin:0;
+  font-family:Arial;
+  background:#e6f0ff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.box{
   background:white;
   padding:24px;
   border-radius:16px;
+  width:90%;
+  max-width:380px;
 }
-h2{text-align:center;color:#1E3A8A}
+h2{color:#1E3A8A;text-align:center}
 input{
   width:100%;
   padding:12px;
@@ -28,52 +35,64 @@ button{
   margin-top:16px;
   border:none;
   border-radius:12px;
-  background:#2563eb;
+  background:#1E3A8A;
   color:white;
   font-size:16px;
   cursor:pointer;
 }
-small{display:block;text-align:center;margin-top:12px}
+.msg{margin-top:10px;color:red;text-align:center}
 </style>
 </head>
 
 <body>
-
-<div class="container">
+<div class="box">
   <h2>Créer un compte</h2>
 
+  <input id="name" placeholder="Nom complet">
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Mot de passe">
 
   <button onclick="signup()">Créer mon compte</button>
-
-  <small>
-    Rejoins une communauté de vendeurs sérieux.<br>
-    Tes données sont privées et sécurisées.
-  </small>
+  <div class="msg" id="msg"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyA45eoz8QZbHdFlOmuK6l6yjfJC3JaF2jQ",
   authDomain:"collibri-buisiness.firebaseapp.com",
+  databaseURL:"https://collibri-buisiness-default-rtdb.firebaseio.com",
   projectId:"collibri-buisiness"
 });
+
 const auth = getAuth(app);
+const db = getDatabase(app);
 
 window.signup = async ()=>{
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if(!name || !email || !password){
+    msg.textContent = "Tous les champs sont obligatoires";
+    return;
+  }
+
   try{
-    const user=await createUserWithEmailAndPassword(auth,email.value,password.value);
-    localStorage.setItem("uid",user.user.uid);
+    const res = await createUserWithEmailAndPassword(auth,email,password);
+    await set(ref(db,"users/"+res.user.uid),{
+      nom:name,
+      email,
+      createdAt:Date.now()
+    });
     location.href="profil.html";
   }catch(e){
-    alert("Erreur lors de l'inscription");
+    msg.textContent = e.message;
   }
 };
 </script>
-
 </body>
 </html>
