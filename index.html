@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <title>Colibri Business</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="google-adsense-account" content="ca-pub-6556731339911291">
-
-<!-- Google AdSense -->
-<script data-ad-client="ca-pub-6556731339911291" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -24,8 +20,8 @@ header{
   color:white;
   padding:14px 16px;
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
 }
 
 header h1{
@@ -33,18 +29,18 @@ header h1{
   margin:0;
 }
 
-/* RIGHT ACTION */
+/* ACTIONS HEADER */
 #startBtn{
   background:white;
   color:#1E3A8A;
   border:none;
-  padding:8px 14px;
+  padding:8px 16px;
   border-radius:20px;
   font-weight:bold;
   cursor:pointer;
 }
 
-.avatar{
+#avatar{
   width:40px;
   height:40px;
   border-radius:50%;
@@ -56,8 +52,8 @@ header h1{
 
 /* HERO */
 .hero{
-  padding:40px 20px;
   text-align:center;
+  padding:40px 20px;
 }
 
 .hero h2{
@@ -76,7 +72,7 @@ header h1{
   background:#1E3A8A;
   color:white;
   border:none;
-  padding:14px 24px;
+  padding:14px 28px;
   border-radius:28px;
   font-size:16px;
   cursor:pointer;
@@ -95,7 +91,6 @@ header h1{
   padding:16px;
   border-radius:14px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  text-align:center;
 }
 
 .feature i{
@@ -113,13 +108,13 @@ header h1{
   color:#334155;
 }
 
-/* FOOTER MENU */
+/* MENU BAS */
 .menu{
   position:fixed;
   bottom:0;
   width:100%;
   background:#1E3A8A;
-  display:flex;
+  display:none;
   justify-content:space-around;
   padding:10px 0;
 }
@@ -127,12 +122,6 @@ header h1{
 .menu a{
   color:white;
   font-size:20px;
-}
-
-/* AD BLOCK */
-.ad-container{
-  margin:20px auto;
-  text-align:center;
 }
 </style>
 </head>
@@ -142,58 +131,49 @@ header h1{
 <header>
   <h1>Colibri Business</h1>
 
-  <!-- Bouton Commencer -->
   <button id="startBtn" onclick="location.href='auth.html'">
     Commencer
   </button>
 
-  <!-- Avatar -->
-  <img id="avatar" class="avatar" onclick="location.href='profil.html'">
+  <img id="avatar" onclick="location.href='profil.html'">
 </header>
 
 <section class="hero">
-  <h2>Vendez & achetez simplement</h2>
-  <p>Colibri Business aide les vendeurs à gérer, publier et vendre leurs produits facilement.</p>
-  <button onclick="location.href='achat.html'">
-    Voir les produits
+  <h2>Développe ton business simplement</h2>
+  <p>
+    Vends, achète et gère ton activité avec un outil professionnel,
+    simple et sécurisé.
+  </p>
+
+  <button id="mainActionBtn">
+    Commencer
   </button>
 </section>
-
-<!-- AD SENSE -->
-<div class="ad-container">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
 
 <section class="features">
   <div class="feature">
     <i class="fas fa-store"></i>
-    <h3>Boutique simple</h3>
-    <p>Publiez vos produits en quelques secondes.</p>
+    <h3>Boutique facile</h3>
+    <p>Publie tes produits en quelques secondes.</p>
   </div>
 
   <div class="feature">
-    <i class="fas fa-box"></i>
-    <h3>Commandes claires</h3>
-    <p>Suivez vos ventes et commandes facilement.</p>
+    <i class="fas fa-comments"></i>
+    <h3>Chat en temps réel</h3>
+    <p>Discute directement avec tes clients.</p>
   </div>
 
   <div class="feature">
     <i class="fas fa-chart-line"></i>
-    <h3>Statistiques</h3>
-    <p>Analysez vos performances en temps réel.</p>
+    <h3>Suivi clair</h3>
+    <p>Statistiques et commandes en un seul endroit.</p>
   </div>
 </section>
 
-<nav class="menu">
+<nav class="menu" id="bottomMenu">
   <a href="index.html"><i class="fas fa-home"></i></a>
   <a href="achat.html"><i class="fas fa-store"></i></a>
-  <a href="vente.html"><i class="fas fa-plus"></i></a>
+  <a href="chat.html"><i class="fas fa-comments"></i></a>
   <a href="profil.html"><i class="fas fa-user"></i></a>
 </nav>
 
@@ -214,19 +194,30 @@ const db = getDatabase(app);
 
 const startBtn = document.getElementById("startBtn");
 const avatar = document.getElementById("avatar");
+const menu = document.getElementById("bottomMenu");
+const mainBtn = document.getElementById("mainActionBtn");
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async user=>{
   if(user){
+    // CONNECTÉ
     startBtn.style.display = "none";
     avatar.style.display = "block";
+    menu.style.display = "flex";
+    mainBtn.textContent = "Explorer les produits";
+    mainBtn.onclick = ()=>location.href="achat.html";
 
     const snap = await get(ref(db,"users/"+user.uid));
     if(snap.exists()){
       avatar.src = snap.val().avatarBase64 || "";
     }
+
   }else{
+    // NON CONNECTÉ
     startBtn.style.display = "block";
     avatar.style.display = "none";
+    menu.style.display = "none";
+    mainBtn.textContent = "Commencer";
+    mainBtn.onclick = ()=>location.href="auth.html";
   }
 });
 </script>
